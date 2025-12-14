@@ -1,7 +1,6 @@
 import { format, isToday, isTomorrow } from 'date-fns'
 import { useApp } from '../context/AppContext'
 import { Ride } from '../lib/supabase'
-import { getDestination } from '../lib/destinations'
 
 interface RideCardProps {
     ride: Ride
@@ -19,7 +18,6 @@ export function RideCard({
     showStatus = false
 }: RideCardProps) {
     const { language, t } = useApp()
-    const destination = getDestination(ride.destination)
 
     const formatTime = (dateStr: string) => {
         const date = new Date(dateStr)
@@ -41,16 +39,24 @@ export function RideCard({
 
     return (
         <div className="ride-card">
-            <div className="ride-header">
-                <span className="ride-destination-icon">{destination?.icon}</span>
-                <span className="ride-destination-name">
-                    {destination ? (language === 'hi' ? destination.hi : destination.en) : ride.destination}
-                </span>
-                {showStatus && (
-                    <span className={`badge badge-${ride.status === 'open' ? 'accepted' : ride.status}`}>
-                        {ride.status}
+            {/* Origin → Destination header */}
+            <div className="ride-header" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: 4 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                    <span style={{ fontSize: 20 }}>📍</span>
+                    <span style={{ fontWeight: 600, color: 'var(--color-text)' }}>
+                        {ride.origin || (language === 'hi' ? 'गाँव' : 'Village')}
                     </span>
-                )}
+                    <span style={{ fontSize: 16, color: 'var(--color-text-light)' }}>→</span>
+                    <span style={{ fontSize: 20 }}>🏁</span>
+                    <span style={{ fontWeight: 700, fontSize: 18, color: 'var(--color-primary)' }}>
+                        {ride.destination}
+                    </span>
+                    {showStatus && (
+                        <span className={`badge badge-${ride.status === 'open' ? 'accepted' : ride.status}`}>
+                            {ride.status}
+                        </span>
+                    )}
+                </div>
             </div>
 
             <div className="ride-details">

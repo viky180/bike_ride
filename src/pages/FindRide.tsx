@@ -3,7 +3,6 @@ import { useApp } from '../context/AppContext'
 import { supabase, Ride } from '../lib/supabase'
 import { Header } from '../components/Header'
 import { BottomNav } from '../components/BottomNav'
-import { DestinationTabs } from '../components/DestinationSelector'
 import { RideCard } from '../components/RideCard'
 
 // Simple offline cache hook
@@ -35,12 +34,12 @@ function useOfflineCache() {
 }
 
 export function FindRidePage() {
-    const { t, user, showToast, isOnline } = useApp()
+    const { t, user, showToast, isOnline, language } = useApp()
     const { cacheRides, getCachedRides } = useOfflineCache()
 
     const [rides, setRides] = useState<Ride[]>([])
     const [loading, setLoading] = useState(true)
-    const [filter, setFilter] = useState<string | null>(null)
+    const [searchQuery, setSearchQuery] = useState('')
     const [requestingId, setRequestingId] = useState<string | null>(null)
 
     useEffect(() => {
@@ -123,8 +122,12 @@ export function FindRidePage() {
         }
     }
 
-    const filteredRides = filter
-        ? rides.filter(r => r.destination === filter)
+    // Filter rides by search query (matches origin or destination)
+    const filteredRides = searchQuery.trim()
+        ? rides.filter(r =>
+            r.origin?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            r.destination?.toLowerCase().includes(searchQuery.toLowerCase())
+        )
         : rides
 
     return (
@@ -132,11 +135,23 @@ export function FindRidePage() {
             <Header title={t('find_ride')} showBack />
 
             <div className="page">
-                {/* Destination filter tabs */}
-                <DestinationTabs
-                    selected={filter}
-                    onSelect={setFilter}
-                />
+                {/* Search input */}
+                <div style={{ marginBottom: 16 }}>
+                    <input
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder={language === 'hi' ? '🔍 जगह खोजें...' : '🔍 Search location...'}
+                        style={{
+                            width: '100%',
+                            padding: '14px 16px',
+                            fontSize: '16px',
+                            borderRadius: '12px',
+                            border: '2px solid var(--color-border)',
+                            background: 'var(--color-white)'
+                        }}
+                    />
+                </div>
 
                 {/* Loading state */}
                 {loading && (

@@ -13,12 +13,17 @@ const translations = {
         my_rides: 'My Rides',
 
         // Post Ride
+        where_from: 'Where are you starting from?',
         where_going: 'Where are you going?',
         when_going: 'When?',
         how_many_seats: 'How many seats?',
         price_per_seat: 'Price per seat',
         post_ride: 'Post Ride',
         ride_posted: 'Ride Posted!',
+        enter_origin: 'e.g., Rampur Village',
+        enter_destination: 'e.g., Block Office',
+        from: 'From',
+        to: 'To',
 
         // Find Ride
         available_rides: 'Available Rides',
@@ -59,7 +64,26 @@ const translations = {
         ride_requests: 'Ride Requests',
         no_requests: 'No requests yet',
         your_bookings: 'Your Bookings',
-        rides_you_posted: 'Rides You Posted'
+        rides_you_posted: 'Rides You Posted',
+
+        // Produce Module
+        produce: 'Produce',
+        browse_produce: 'Browse Produce',
+        sell_produce: 'Sell Produce',
+        my_products: 'My Products',
+        no_products: 'No products available',
+        call: 'Call',
+        mark_sold: 'Mark Sold',
+        product_posted: 'Product Listed!',
+        product_deleted: 'Product Deleted',
+        product_sold: 'Marked as Sold',
+        what_selling: 'What are you selling?',
+        select_category: 'Select Category',
+        enter_product_name: 'Product name',
+        enter_quantity: 'Quantity (e.g., 10 kg)',
+        enter_price: 'Price in ₹',
+        your_location: 'Your location',
+        all_categories: 'All'
     },
     hi: {
         // App
@@ -72,12 +96,17 @@ const translations = {
         my_rides: 'मेरी सवारी',
 
         // Post Ride
+        where_from: 'कहाँ से चल रहे हैं?',
         where_going: 'कहाँ जा रहे हैं?',
         when_going: 'कब?',
         how_many_seats: 'कितनी सीट?',
         price_per_seat: 'प्रति सीट किराया',
         post_ride: 'सवारी पोस्ट करें',
         ride_posted: 'सवारी पोस्ट हो गई!',
+        enter_origin: 'जैसे: रामपुर गाँव',
+        enter_destination: 'जैसे: ब्लॉक कार्यालय',
+        from: 'से',
+        to: 'तक',
 
         // Find Ride
         available_rides: 'उपलब्ध सवारी',
@@ -118,7 +147,26 @@ const translations = {
         ride_requests: 'सवारी अनुरोध',
         no_requests: 'अभी कोई अनुरोध नहीं',
         your_bookings: 'आपकी बुकिंग',
-        rides_you_posted: 'आपकी पोस्ट की गई सवारी'
+        rides_you_posted: 'आपकी पोस्ट की गई सवारी',
+
+        // Produce Module
+        produce: 'उपज',
+        browse_produce: 'उपज देखें',
+        sell_produce: 'बेचें',
+        my_products: 'मेरे उत्पाद',
+        no_products: 'कोई उत्पाद नहीं',
+        call: 'कॉल करें',
+        mark_sold: 'बिक गया',
+        product_posted: 'उत्पाद सूचीबद्ध!',
+        product_deleted: 'उत्पाद हटाया गया',
+        product_sold: 'बिक गया',
+        what_selling: 'क्या बेच रहे हैं?',
+        select_category: 'श्रेणी चुनें',
+        enter_product_name: 'उत्पाद का नाम',
+        enter_quantity: 'मात्रा (जैसे: 10 किलो)',
+        enter_price: 'कीमत ₹ में',
+        your_location: 'आपका स्थान',
+        all_categories: 'सभी'
     }
 } as const
 

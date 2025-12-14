@@ -19,7 +19,8 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS rides (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   driver_id UUID REFERENCES users(id) ON DELETE CASCADE,
-  destination TEXT NOT NULL CHECK (destination IN ('block_office', 'market', 'bus_stand', 'phc', 'bank')),
+  origin TEXT,  -- Free text origin location, e.g., "रामपुर गाँव"
+  destination TEXT NOT NULL,  -- Free text destination, e.g., "ब्लॉक कार्यालय"
   departure_time TIMESTAMPTZ NOT NULL,
   available_seats INTEGER DEFAULT 1 CHECK (available_seats >= 0 AND available_seats <= 4),
   cost_per_seat INTEGER DEFAULT 10 CHECK (cost_per_seat >= 0),
@@ -83,3 +84,29 @@ CREATE TRIGGER on_booking_accepted
   FOR EACH ROW
   WHEN (NEW.status = 'accepted')
   EXECUTE FUNCTION update_ride_status();
+
+-- ================================================
+-- Produce Discovery Module
+-- ================================================
+
+-- Products listed for sale
+CREATE TABLE IF NOT EXISTS products (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  seller_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  category TEXT NOT NULL CHECK (category IN ('vegetables', 'fruits', 'grains', 'dairy', 'other')),
+  name TEXT NOT NULL,
+  quantity TEXT NOT NULL,  -- e.g., "10 kg", "50 pieces"
+  price INTEGER NOT NULL CHECK (price > 0),
+  location TEXT,           -- Village/area name
+  status TEXT DEFAULT 'available' CHECK (status IN ('available', 'sold', 'expired')),
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- Indexes for products
+CREATE INDEX IF NOT EXISTS idx_products_category ON products(category);
+CREATE INDEX IF NOT EXISTS idx_products_status ON products(status);
+CREATE INDEX IF NOT EXISTS idx_products_seller ON products(seller_id);
+
+-- RLS for products
+ALTER TABLE products ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow all for products" ON products FOR ALL USING (true) WITH CHECK (true);

@@ -27,7 +27,8 @@ export interface User {
 export interface Ride {
     id: string
     driver_id: string
-    destination: 'block_office' | 'market' | 'bus_stand' | 'phc' | 'bank'
+    origin: string          // Free text, e.g., "रामपुर गाँव"
+    destination: string     // Free text, e.g., "ब्लॉक कार्यालय"
     departure_time: string
     available_seats: number
     cost_per_seat: number
@@ -46,4 +47,21 @@ export interface Booking {
     // Joined fields
     ride?: Ride
     rider?: User
+}
+
+// Product categories
+export type ProductCategory = 'vegetables' | 'fruits' | 'grains' | 'dairy' | 'other'
+
+export interface Product {
+    id: string
+    seller_id: string
+    category: ProductCategory
+    name: string
+    quantity: string
+    price: number
+    location: string | null
+    status: 'available' | 'sold' | 'expired'
+    created_at: string
+    // Joined fields
+    seller?: User
 }

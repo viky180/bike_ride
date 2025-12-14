@@ -4,7 +4,6 @@ import { supabase, Ride, Booking } from '../lib/supabase'
 import { Header } from '../components/Header'
 import { BottomNav } from '../components/BottomNav'
 import { RideCard } from '../components/RideCard'
-import { getDestination } from '../lib/destinations'
 import { format } from 'date-fns'
 
 interface RideWithBookings extends Ride {
@@ -127,20 +126,26 @@ export function MyRidesPage() {
                             </div>
                         ) : (
                             myRides.map(ride => {
-                                const destination = getDestination(ride.destination)
                                 const pendingBookings = ride.bookings?.filter(b => b.status === 'pending') || []
 
                                 return (
                                     <div key={ride.id} className="card" style={{ marginBottom: 16 }}>
-                                        {/* Ride info */}
-                                        <div className="ride-header">
-                                            <span className="ride-destination-icon">{destination?.icon}</span>
-                                            <span className="ride-destination-name">
-                                                {language === 'hi' ? destination?.hi : destination?.en}
-                                            </span>
-                                            <span className={`badge badge-${ride.status === 'open' ? 'accepted' : 'pending'}`}>
-                                                {ride.status}
-                                            </span>
+                                        {/* Origin → Destination */}
+                                        <div className="ride-header" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: 4 }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                                                <span style={{ fontSize: 20 }}>📍</span>
+                                                <span style={{ fontWeight: 600 }}>
+                                                    {ride.origin || (language === 'hi' ? 'गाँव' : 'Village')}
+                                                </span>
+                                                <span style={{ color: 'var(--color-text-light)' }}>→</span>
+                                                <span style={{ fontSize: 20 }}>🏁</span>
+                                                <span style={{ fontWeight: 700, color: 'var(--color-primary)' }}>
+                                                    {ride.destination}
+                                                </span>
+                                                <span className={`badge badge-${ride.status === 'open' ? 'accepted' : 'pending'}`}>
+                                                    {ride.status}
+                                                </span>
+                                            </div>
                                         </div>
 
                                         <div className="ride-details">
