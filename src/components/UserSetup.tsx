@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useApp } from '../context/AppContext'
 import { supabase } from '../lib/supabase'
+import { AppIcon } from './AppIcon'
 
 interface UserSetupProps {
     onComplete: () => void
@@ -65,7 +66,7 @@ export function UserSetup({ onComplete }: UserSetupProps) {
     return (
         <div className="page" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
             <div style={{ textAlign: 'center', marginBottom: 32 }}>
-                <div style={{ fontSize: 64, marginBottom: 16 }}>🤝</div>
+                <div style={{ marginBottom: 16 }}><AppIcon size={80} /></div>
                 <h1 style={{ fontSize: 28, marginBottom: 8 }}>{t('app_name')}</h1>
                 <p className="text-light">{t('app_tagline')}</p>
             </div>
