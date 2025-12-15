@@ -5,7 +5,7 @@ const translations = {
     en: {
         // App
         app_name: 'Gram Junction',
-        app_tagline: 'Rural Ride Sharing',
+        app_tagline: 'Village Connection Hub',
 
         // Home
         offer_ride: 'Offer Ride',
@@ -88,7 +88,7 @@ const translations = {
     hi: {
         // App
         app_name: 'ग्राम जंक्शन',
-        app_tagline: 'गाँव की सवारी',
+        app_tagline: 'गाँव का संगम',
 
         // Home
         offer_ride: 'सवारी दें',
