@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 import { Language, getStoredLanguage, setStoredLanguage, t, TranslationKey } from '../lib/i18n'
-import { StoredUser, getStoredUser, setStoredUser as saveUser } from '../lib/storage'
+import { StoredUser, getStoredUser, setStoredUser as saveUser, AppMode, getStoredMode, setStoredMode } from '../lib/storage'
 
 interface AppContextType {
     // Language
@@ -11,6 +11,10 @@ interface AppContextType {
     // User
     user: StoredUser | null
     setUser: (user: StoredUser) => void
+
+    // App Mode
+    mode: AppMode | null
+    setMode: (mode: AppMode) => void
 
     // Online status
     isOnline: boolean
@@ -24,6 +28,7 @@ const AppContext = createContext<AppContextType | null>(null)
 export function AppProvider({ children }: { children: ReactNode }) {
     const [language, setLanguageState] = useState<Language>(getStoredLanguage())
     const [user, setUserState] = useState<StoredUser | null>(getStoredUser())
+    const [mode, setModeState] = useState<AppMode | null>(getStoredMode())
     const [isOnline, setIsOnline] = useState(navigator.onLine)
     const [toast, setToast] = useState<string | null>(null)
 
@@ -50,6 +55,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
         saveUser(newUser)
     }
 
+    const setMode = (newMode: AppMode) => {
+        setModeState(newMode)
+        setStoredMode(newMode)
+    }
+
     const translate = (key: TranslationKey) => t(key, language)
 
     const showToast = (message: string) => {
@@ -64,6 +74,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
             t: translate,
             user,
             setUser,
+            mode,
+            setMode,
             isOnline,
             showToast
         }}>
@@ -87,3 +99,4 @@ export function useApp() {
     }
     return context
 }
+

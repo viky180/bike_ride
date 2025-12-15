@@ -86,3 +86,24 @@ export function setStoredUser(user: StoredUser): void {
 export function clearStoredUser(): void {
     localStorage.removeItem(USER_KEY)
 }
+
+// App Mode storage
+const MODE_KEY = 'gramin_sawari_mode'
+
+export type AppMode = 'ride' | 'produce'
+
+export function getStoredMode(): AppMode | null {
+    try {
+        const stored = localStorage.getItem(MODE_KEY)
+        if (stored === 'ride' || stored === 'produce') {
+            return stored
+        }
+        return null
+    } catch {
+        return null
+    }
+}
+
+export function setStoredMode(mode: AppMode): void {
+    localStorage.setItem(MODE_KEY, mode)
+}

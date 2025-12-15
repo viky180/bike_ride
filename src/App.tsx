@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useApp } from './context/AppContext'
 import { UserSetup } from './components/UserSetup'
+import { ModeSelection } from './pages/ModeSelection'
 import { HomePage } from './pages/Home'
 import { PostRidePage } from './pages/PostRide'
 import { FindRidePage } from './pages/FindRide'
@@ -12,11 +13,16 @@ import { RequestProductPage } from './pages/RequestProductPage'
 import { DemandBoardPage } from './pages/DemandBoardPage'
 
 function App() {
-    const { user } = useApp()
+    const { user, mode } = useApp()
 
     // Show user setup if no user
     if (!user) {
         return <UserSetup onComplete={() => { }} />
+    }
+
+    // Show mode selection if no mode is set
+    if (!mode) {
+        return <ModeSelection />
     }
 
     return (

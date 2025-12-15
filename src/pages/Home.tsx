@@ -4,11 +4,33 @@ import { Header } from '../components/Header'
 import { BottomNav } from '../components/BottomNav'
 
 export function HomePage() {
-    const { t, user, language } = useApp()
+    const { t, user, language, mode, setMode } = useApp()
+
+    const handleSwitchMode = () => {
+        // Toggle to the other mode
+        const newMode = mode === 'ride' ? 'produce' : 'ride'
+        setMode(newMode)
+    }
+
+    // Mode-specific content
+    const isRideMode = mode === 'ride'
+
+    const headerTitle = isRideMode
+        ? (language === 'hi' ? '🏍️ बाइक सवारी' : '🏍️ Bike Rides')
+        : (language === 'hi' ? '🥬 स्थानीय बाज़ार' : '🥬 Local Market')
 
     return (
         <div className="app">
-            <Header />
+            <Header title={headerTitle} />
+
+            {/* Switch Mode Button */}
+            <button
+                className="switch-mode-btn"
+                onClick={handleSwitchMode}
+                title={language === 'hi' ? 'मोड बदलें' : 'Switch Mode'}
+            >
+                🔄
+            </button>
 
             <div className="page">
                 {/* Welcome message */}
@@ -16,62 +38,110 @@ export function HomePage() {
                     <h1 style={{ fontSize: 24, marginBottom: 8 }}>
                         {user?.name ? `नमस्ते, ${user.name}!` : t('app_name')}
                     </h1>
-                    <p className="text-light">{language === 'hi' ? 'आप क्या करना चाहते हैं?' : 'What would you like to do?'}</p>
+                    <p className="text-light">
+                        {isRideMode
+                            ? (language === 'hi' ? 'कहाँ जाना है?' : 'Where do you want to go?')
+                            : (language === 'hi' ? 'क्या खरीदना या बेचना है?' : 'What to buy or sell?')
+                        }
+                    </p>
                 </div>
 
-                {/* Two main choices */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-                    {/* Bike Booking Section */}
-                    <Link to="/find" className="home-section-card" style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)' }}>
-                        <div className="home-section-icon">🏍️</div>
-                        <div className="home-section-content">
-                            <div className="home-section-title">
-                                {language === 'hi' ? 'बाइक सवारी' : 'Bike Ride'}
+                {/* Primary action card based on mode */}
+                {isRideMode ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                        <Link to="/find" className="home-section-card" style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)' }}>
+                            <div className="home-section-icon">🔍</div>
+                            <div className="home-section-content">
+                                <div className="home-section-title">
+                                    {language === 'hi' ? 'सवारी खोजें' : 'Find a Ride'}
+                                </div>
+                                <div className="home-section-subtitle">
+                                    {language === 'hi' ? 'आज उपलब्ध सवारी देखें' : 'See available rides today'}
+                                </div>
                             </div>
-                            <div className="home-section-subtitle">
-                                {language === 'hi' ? 'सवारी खोजें या दें' : 'Find or offer a ride'}
-                            </div>
-                        </div>
-                        <span className="home-section-arrow">→</span>
-                    </Link>
+                            <span className="home-section-arrow">→</span>
+                        </Link>
 
-                    {/* Buy/Sell Produce Section */}
-                    <Link to="/produce" className="home-section-card" style={{ background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' }}>
-                        <div className="home-section-icon">🥬</div>
-                        <div className="home-section-content">
-                            <div className="home-section-title">
-                                {language === 'hi' ? 'उपज खरीदें/बेचें' : 'Buy/Sell Produce'}
+                        <Link to="/post" className="home-section-card" style={{ background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)' }}>
+                            <div className="home-section-icon">🏍️</div>
+                            <div className="home-section-content">
+                                <div className="home-section-title">
+                                    {language === 'hi' ? 'सवारी दें' : 'Offer a Ride'}
+                                </div>
+                                <div className="home-section-subtitle">
+                                    {language === 'hi' ? 'अपनी यात्रा साझा करें' : 'Share your journey'}
+                                </div>
                             </div>
-                            <div className="home-section-subtitle">
-                                {language === 'hi' ? 'सब्ज़ी, फल, अनाज बेचें' : 'Vegetables, fruits, grains'}
+                            <span className="home-section-arrow">→</span>
+                        </Link>
+                    </div>
+                ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                        <Link to="/produce" className="home-section-card" style={{ background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' }}>
+                            <div className="home-section-icon">🛒</div>
+                            <div className="home-section-content">
+                                <div className="home-section-title">
+                                    {language === 'hi' ? 'उपज खरीदें' : 'Buy Produce'}
+                                </div>
+                                <div className="home-section-subtitle">
+                                    {language === 'hi' ? 'ताज़ी सब्ज़ियाँ और फल' : 'Fresh vegetables & fruits'}
+                                </div>
                             </div>
-                        </div>
-                        <span className="home-section-arrow">→</span>
-                    </Link>
-                </div>
+                            <span className="home-section-arrow">→</span>
+                        </Link>
 
-                {/* Quick actions */}
+                        <Link to="/sell" className="home-section-card" style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)' }}>
+                            <div className="home-section-icon">📦</div>
+                            <div className="home-section-content">
+                                <div className="home-section-title">
+                                    {language === 'hi' ? 'उपज बेचें' : 'Sell Produce'}
+                                </div>
+                                <div className="home-section-subtitle">
+                                    {language === 'hi' ? 'अपनी फसल बेचें' : 'List your harvest'}
+                                </div>
+                            </div>
+                            <span className="home-section-arrow">→</span>
+                        </Link>
+                    </div>
+                )}
+
+                {/* Quick actions based on mode */}
                 <div style={{ marginTop: 32 }}>
                     <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 16, color: 'var(--color-text-light)' }}>
                         {language === 'hi' ? 'जल्दी करें' : 'Quick Actions'}
                     </h3>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}>
-                        <Link to="/post" className="quick-action-btn">
-                            <span>🏍️</span>
-                            <span>{t('offer_ride')}</span>
-                        </Link>
-                        <Link to="/sell" className="quick-action-btn">
-                            <span>📦</span>
-                            <span>{t('sell_produce')}</span>
-                        </Link>
-                        <Link to="/my-rides" className="quick-action-btn">
-                            <span>�</span>
-                            <span>{t('my_rides')}</span>
-                        </Link>
-                        <Link to="/my-products" className="quick-action-btn">
-                            <span>🏷️</span>
-                            <span>{t('my_products')}</span>
-                        </Link>
+                        {isRideMode ? (
+                            <>
+                                <Link to="/post" className="quick-action-btn">
+                                    <span>🏍️</span>
+                                    <span>{t('offer_ride')}</span>
+                                </Link>
+                                <Link to="/my-rides" className="quick-action-btn">
+                                    <span>📋</span>
+                                    <span>{t('my_rides')}</span>
+                                </Link>
+                            </>
+                        ) : (
+                            <>
+                                <Link to="/sell" className="quick-action-btn">
+                                    <span>📦</span>
+                                    <span>{t('sell_produce')}</span>
+                                </Link>
+                                <Link to="/my-products" className="quick-action-btn">
+                                    <span>🏷️</span>
+                                    <span>{t('my_products')}</span>
+                                </Link>
+                                <Link to="/request" className="quick-action-btn">
+                                    <span>🔔</span>
+                                    <span>{language === 'hi' ? 'मांग करें' : 'Request'}</span>
+                                </Link>
+                                <Link to="/demand" className="quick-action-btn">
+                                    <span>📋</span>
+                                    <span>{language === 'hi' ? 'ज़रूरत बोर्ड' : 'Demand Board'}</span>
+                                </Link>
+                            </>
+                        )}
                     </div>
                 </div>
             </div>
