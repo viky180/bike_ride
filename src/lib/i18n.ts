@@ -4,7 +4,7 @@ export type Language = 'en' | 'hi'
 const translations = {
     en: {
         // App
-        app_name: 'Gramin Sawari',
+        app_name: 'Gram Junction',
         app_tagline: 'Rural Ride Sharing',
 
         // Home
@@ -87,7 +87,7 @@ const translations = {
     },
     hi: {
         // App
-        app_name: 'ग्रामीण सवारी',
+        app_name: 'ग्राम जंक्शन',
         app_tagline: 'गाँव की सवारी',
 
         // Home
@@ -178,11 +178,11 @@ export function t(key: TranslationKey, lang: Language = 'hi'): string {
 
 // Get stored language preference
 export function getStoredLanguage(): Language {
-    const stored = localStorage.getItem('gramin_sawari_lang')
+    const stored = localStorage.getItem('gram_junction_lang')
     return (stored === 'en' || stored === 'hi') ? stored : 'hi'
 }
 
 // Save language preference
 export function setStoredLanguage(lang: Language): void {
-    localStorage.setItem('gramin_sawari_lang', lang)
+    localStorage.setItem('gram_junction_lang', lang)
 }

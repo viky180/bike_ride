@@ -1,5 +1,5 @@
 -- ================================================
--- Gramin Sawari - Rural Ride Sharing Schema
+-- Gram Junction - Rural Ride Sharing & Local Marketplace Schema
 -- Run this in your Supabase SQL Editor
 -- ================================================
 

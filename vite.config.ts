@@ -9,9 +9,9 @@ export default defineConfig({
             registerType: 'autoUpdate',
             includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
             manifest: {
-                name: 'ग्रामीण सवारी - Gramin Sawari',
-                short_name: 'सवारी',
-                description: 'Rural ride sharing - गाँव की सवारी',
+                name: 'ग्राम जंक्शन - Gram Junction',
+                short_name: 'जंक्शन',
+                description: 'Rural ride sharing & local marketplace - गाँव की सवारी',
                 theme_color: '#10b981',
                 background_color: '#f0fdf4',
                 display: 'standalone',
