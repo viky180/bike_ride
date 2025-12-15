@@ -83,7 +83,19 @@ const translations = {
         enter_quantity: 'Quantity (e.g., 10 kg)',
         enter_price: 'Price in ₹',
         your_location: 'Your location',
-        all_categories: 'All'
+        all_categories: 'All',
+
+        // Demand Board
+        demand_board: "Today's Demand",
+        request_product: 'Request Product',
+        product_not_found: 'Product not found?',
+        what_need: 'What do you need?',
+        expected_price: 'Expected price (optional)',
+        submit_request: 'Submit Request',
+        request_submitted: 'Request Submitted!',
+        no_demands: 'No demands yet',
+        max_requests: 'Max 2 active requests allowed',
+        your_requests: 'Your Requests'
     },
     hi: {
         // App
@@ -166,7 +178,19 @@ const translations = {
         enter_quantity: 'मात्रा (जैसे: 10 किलो)',
         enter_price: 'कीमत ₹ में',
         your_location: 'आपका स्थान',
-        all_categories: 'सभी'
+        all_categories: 'सभी',
+
+        // Demand Board
+        demand_board: 'आज की मांग',
+        request_product: 'मांग करें',
+        product_not_found: 'उत्पाद नहीं मिला?',
+        what_need: 'क्या चाहिए?',
+        expected_price: 'अनुमानित कीमत (वैकल्पिक)',
+        submit_request: 'मांग भेजें',
+        request_submitted: 'मांग भेज दी गई!',
+        no_demands: 'अभी कोई मांग नहीं',
+        max_requests: 'अधिकतम 2 सक्रिय मांगें',
+        your_requests: 'आपकी मांगें'
     }
 } as const
 

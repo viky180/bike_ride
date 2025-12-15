@@ -8,6 +8,8 @@ import { MyRidesPage } from './pages/MyRides'
 import { ProducePage } from './pages/ProducePage'
 import { SellProductPage } from './pages/SellProductPage'
 import { MyProductsPage } from './pages/MyProductsPage'
+import { RequestProductPage } from './pages/RequestProductPage'
+import { DemandBoardPage } from './pages/DemandBoardPage'
 
 function App() {
     const { user } = useApp()
@@ -27,6 +29,9 @@ function App() {
             <Route path="/produce" element={<ProducePage />} />
             <Route path="/sell" element={<SellProductPage />} />
             <Route path="/my-products" element={<MyProductsPage />} />
+            {/* Demand Board */}
+            <Route path="/request" element={<RequestProductPage />} />
+            <Route path="/demand" element={<DemandBoardPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
     )

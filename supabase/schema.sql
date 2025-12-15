@@ -110,3 +110,31 @@ CREATE INDEX IF NOT EXISTS idx_products_seller ON products(seller_id);
 -- RLS for products
 ALTER TABLE products ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Allow all for products" ON products FOR ALL USING (true) WITH CHECK (true);
+
+-- ================================================
+-- Product Demand (Zarurat Board) Module
+-- ================================================
+
+-- Product requests/demands from buyers
+CREATE TABLE IF NOT EXISTS product_requests (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  buyer_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  category TEXT NOT NULL CHECK (category IN ('vegetables', 'fruits', 'grains', 'dairy', 'other')),
+  product_name TEXT NOT NULL,
+  quantity TEXT,                -- e.g., "5 kg", "daily"
+  expected_price INTEGER,       -- Optional expected price
+  location TEXT,                -- Village/area name
+  status TEXT DEFAULT 'active' CHECK (status IN ('active', 'fulfilled', 'expired')),
+  created_at TIMESTAMPTZ DEFAULT now(),
+  expires_at TIMESTAMPTZ DEFAULT (now() + interval '48 hours')
+);
+
+-- Indexes for product_requests
+CREATE INDEX IF NOT EXISTS idx_requests_category ON product_requests(category);
+CREATE INDEX IF NOT EXISTS idx_requests_status ON product_requests(status);
+CREATE INDEX IF NOT EXISTS idx_requests_buyer ON product_requests(buyer_id);
+CREATE INDEX IF NOT EXISTS idx_requests_expires ON product_requests(expires_at);
+
+-- RLS for product_requests
+ALTER TABLE product_requests ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow all for product_requests" ON product_requests FOR ALL USING (true) WITH CHECK (true);

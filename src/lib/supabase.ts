@@ -65,3 +65,18 @@ export interface Product {
     // Joined fields
     seller?: User
 }
+
+export interface ProductRequest {
+    id: string
+    buyer_id: string
+    category: ProductCategory
+    product_name: string
+    quantity: string | null
+    expected_price: number | null
+    location: string | null
+    status: 'active' | 'fulfilled' | 'expired'
+    created_at: string
+    expires_at: string
+    // Joined fields
+    buyer?: User
+}
