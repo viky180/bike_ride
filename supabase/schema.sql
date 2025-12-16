@@ -98,7 +98,7 @@ CREATE TABLE IF NOT EXISTS products (
   quantity TEXT NOT NULL,  -- e.g., "10 kg", "50 pieces"
   price INTEGER NOT NULL CHECK (price > 0),
   location TEXT,           -- Village/area name
-  image_url TEXT,          -- URL to product image in Supabase Storage
+  image_urls JSONB DEFAULT '[]'::jsonb,  -- Array of image URLs (max 3)
   status TEXT DEFAULT 'available' CHECK (status IN ('available', 'sold', 'expired')),
   created_at TIMESTAMPTZ DEFAULT now()
 );

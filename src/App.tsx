@@ -11,6 +11,7 @@ import { SellProductPage } from './pages/SellProductPage'
 import { MyProductsPage } from './pages/MyProductsPage'
 import { RequestProductPage } from './pages/RequestProductPage'
 import { DemandBoardPage } from './pages/DemandBoardPage'
+import { ProductDetailPage } from './pages/ProductDetailPage'
 
 function App() {
     const { user, mode } = useApp()
@@ -35,6 +36,7 @@ function App() {
             <Route path="/produce" element={<ProducePage />} />
             <Route path="/sell" element={<SellProductPage />} />
             <Route path="/my-products" element={<MyProductsPage />} />
+            <Route path="/product/:id" element={<ProductDetailPage />} />
             {/* Demand Board */}
             <Route path="/request" element={<RequestProductPage />} />
             <Route path="/demand" element={<DemandBoardPage />} />

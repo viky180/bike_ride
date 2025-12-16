@@ -20,8 +20,8 @@ export function SellProductPage() {
     const [location, setLocation] = useState('')
     const [loading, setLoading] = useState(false)
     const [showCustomInput, setShowCustomInput] = useState(false)
-    const [imageFile, setImageFile] = useState<File | null>(null)
-    const [imagePreview, setImagePreview] = useState('')
+    const [imageFiles, setImageFiles] = useState<File[]>([])
+    const [imagePreviews, setImagePreviews] = useState<string[]>([])
 
     const handleSelectCategory = (cat: ProductCategory) => {
         setCategory(cat)
@@ -42,9 +42,9 @@ export function SellProductPage() {
         setSelectedIcon('')
     }
 
-    const handleImageChange = (file: File | null, preview: string) => {
-        setImageFile(file)
-        setImagePreview(preview)
+    const handleImagesChange = (files: File[], previews: string[]) => {
+        setImageFiles(files)
+        setImagePreviews(previews)
     }
 
     const handleSubmit = async () => {
@@ -52,28 +52,31 @@ export function SellProductPage() {
 
         setLoading(true)
         try {
-            let imageUrl: string | null = null
+            const imageUrls: string[] = []
 
-            // Upload image if selected
-            if (imageFile) {
-                const fileExt = imageFile.name.split('.').pop() || 'jpg'
-                const fileName = `${user.id}/${Date.now()}.${fileExt}`
+            // Upload all images
+            for (let i = 0; i < imageFiles.length; i++) {
+                const file = imageFiles[i]
+                const fileExt = file.name.split('.').pop() || 'jpg'
+                const fileName = `${user.id}/${Date.now()}-${i}.${fileExt}`
 
                 const { data: uploadData, error: uploadError } = await supabase.storage
                     .from('product-images')
-                    .upload(fileName, imageFile, {
+                    .upload(fileName, file, {
                         cacheControl: '3600',
                         upsert: false
                     })
 
                 if (uploadError) {
                     console.error('Image upload error:', uploadError)
-                    // Continue without image if upload fails
+                    showToast(language === 'hi'
+                        ? `⚠️ फोटो ${i + 1} अपलोड नहीं हुई`
+                        : `⚠️ Photo ${i + 1} upload failed`)
                 } else if (uploadData) {
                     const { data: { publicUrl } } = supabase.storage
                         .from('product-images')
                         .getPublicUrl(uploadData.path)
-                    imageUrl = publicUrl
+                    imageUrls.push(publicUrl)
                 }
             }
 
@@ -86,7 +89,7 @@ export function SellProductPage() {
                     quantity: quantity.trim(),
                     price: parseInt(price),
                     location: location.trim() || null,
-                    image_url: imageUrl,
+                    image_urls: imageUrls,
                     status: 'available'
                 })
 
@@ -211,8 +214,9 @@ export function SellProductPage() {
                             <>
                                 {/* Image Upload */}
                                 <ImageUpload
-                                    onImageChange={handleImageChange}
-                                    currentPreview={imagePreview}
+                                    onImagesChange={handleImagesChange}
+                                    currentPreviews={imagePreviews}
+                                    maxImages={3}
                                 />
                                 <div className="form-group">
                                     <label className="form-label">{t('enter_quantity')}</label>
