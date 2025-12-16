@@ -97,8 +97,11 @@ export function SellProductPage() {
 
             showToast(t('product_posted'))
             navigate('/my-products')
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error posting product:', error)
+            showToast(language === 'hi'
+                ? `❌ त्रुटि: ${error?.message || 'उत्पाद पोस्ट नहीं हो सका'}`
+                : `❌ Error: ${error?.message || 'Could not post product'}`)
         } finally {
             setLoading(false)
         }
