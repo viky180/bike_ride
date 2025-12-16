@@ -98,6 +98,7 @@ CREATE TABLE IF NOT EXISTS products (
   quantity TEXT NOT NULL,  -- e.g., "10 kg", "50 pieces"
   price INTEGER NOT NULL CHECK (price > 0),
   location TEXT,           -- Village/area name
+  image_url TEXT,          -- URL to product image in Supabase Storage
   status TEXT DEFAULT 'available' CHECK (status IN ('available', 'sold', 'expired')),
   created_at TIMESTAMPTZ DEFAULT now()
 );
@@ -138,3 +139,28 @@ CREATE INDEX IF NOT EXISTS idx_requests_expires ON product_requests(expires_at);
 -- RLS for product_requests
 ALTER TABLE product_requests ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Allow all for product_requests" ON product_requests FOR ALL USING (true) WITH CHECK (true);
+
+-- ================================================
+-- Storage Bucket Policies (for product-images)
+-- NOTE: Create the 'product-images' bucket via Supabase Dashboard first
+-- Then run these policies:
+-- ================================================
+
+-- Migration to add image_url to existing products table (run once if table already exists)
+-- ALTER TABLE products ADD COLUMN IF NOT EXISTS image_url TEXT;
+
+-- Storage policies (uncomment after creating bucket named 'product-images' in dashboard)
+-- Policy: Anyone can view product images (public read)
+-- CREATE POLICY "Public read access for product images"
+-- ON storage.objects FOR SELECT
+-- USING (bucket_id = 'product-images');
+
+-- Policy: Anyone can upload product images (since auth is phone-based in this app)
+-- CREATE POLICY "Public upload for product images"
+-- ON storage.objects FOR INSERT
+-- WITH CHECK (bucket_id = 'product-images');
+
+-- Policy: Anyone can delete product images
+-- CREATE POLICY "Public delete for product images"
+-- ON storage.objects FOR DELETE
+-- USING (bucket_id = 'product-images');

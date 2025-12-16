@@ -50,9 +50,18 @@ export function ProductCard({
         <div className="product-card">
             {/* Category & Name */}
             <div className="product-header">
-                <span className="product-icon" style={{ background: `${category?.color}20` }}>
-                    {category?.icon || '📦'}
-                </span>
+                {product.image_url ? (
+                    <img
+                        src={product.image_url}
+                        alt={product.name}
+                        className="product-image"
+                        loading="lazy"
+                    />
+                ) : (
+                    <span className="product-icon" style={{ background: `${category?.color}20` }}>
+                        {category?.icon || '📦'}
+                    </span>
+                )}
                 <div className="product-info">
                     <div className="product-name">{product.name}</div>
                     <div className="product-category">

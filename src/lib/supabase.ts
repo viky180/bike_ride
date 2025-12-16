@@ -60,6 +60,7 @@ export interface Product {
     quantity: string
     price: number
     location: string | null
+    image_url: string | null
     status: 'available' | 'sold' | 'expired'
     created_at: string
     // Joined fields

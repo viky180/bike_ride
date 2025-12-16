@@ -5,6 +5,7 @@ import { supabase, ProductCategory } from '../lib/supabase'
 import { CATEGORIES } from '../lib/categories'
 import { getPopularProducts, PopularProduct } from '../lib/popularProducts'
 import { Header } from '../components/Header'
+import { ImageUpload } from '../components/ImageUpload'
 
 export function SellProductPage() {
     const { t, user, showToast, language } = useApp()
@@ -19,6 +20,8 @@ export function SellProductPage() {
     const [location, setLocation] = useState('')
     const [loading, setLoading] = useState(false)
     const [showCustomInput, setShowCustomInput] = useState(false)
+    const [imageFile, setImageFile] = useState<File | null>(null)
+    const [imagePreview, setImagePreview] = useState('')
 
     const handleSelectCategory = (cat: ProductCategory) => {
         setCategory(cat)
@@ -39,11 +42,41 @@ export function SellProductPage() {
         setSelectedIcon('')
     }
 
+    const handleImageChange = (file: File | null, preview: string) => {
+        setImageFile(file)
+        setImagePreview(preview)
+    }
+
     const handleSubmit = async () => {
         if (!category || !name.trim() || !quantity.trim() || !price || !user) return
 
         setLoading(true)
         try {
+            let imageUrl: string | null = null
+
+            // Upload image if selected
+            if (imageFile) {
+                const fileExt = imageFile.name.split('.').pop() || 'jpg'
+                const fileName = `${user.id}/${Date.now()}.${fileExt}`
+
+                const { data: uploadData, error: uploadError } = await supabase.storage
+                    .from('product-images')
+                    .upload(fileName, imageFile, {
+                        cacheControl: '3600',
+                        upsert: false
+                    })
+
+                if (uploadError) {
+                    console.error('Image upload error:', uploadError)
+                    // Continue without image if upload fails
+                } else if (uploadData) {
+                    const { data: { publicUrl } } = supabase.storage
+                        .from('product-images')
+                        .getPublicUrl(uploadData.path)
+                    imageUrl = publicUrl
+                }
+            }
+
             const { error } = await supabase
                 .from('products')
                 .insert({
@@ -53,6 +86,7 @@ export function SellProductPage() {
                     quantity: quantity.trim(),
                     price: parseInt(price),
                     location: location.trim() || null,
+                    image_url: imageUrl,
                     status: 'available'
                 })
 
@@ -175,6 +209,11 @@ export function SellProductPage() {
                         {/* Show remaining fields only if product is selected */}
                         {name && (
                             <>
+                                {/* Image Upload */}
+                                <ImageUpload
+                                    onImageChange={handleImageChange}
+                                    currentPreview={imagePreview}
+                                />
                                 <div className="form-group">
                                     <label className="form-label">{t('enter_quantity')}</label>
                                     <input
