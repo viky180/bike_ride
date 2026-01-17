@@ -98,6 +98,7 @@ CREATE TABLE IF NOT EXISTS products (
   quantity TEXT NOT NULL,  -- e.g., "10 kg", "50 pieces"
   price INTEGER NOT NULL CHECK (price > 0),
   location TEXT,           -- Village/area name
+  pincode TEXT,            -- 6-digit pincode for location filtering
   image_urls JSONB DEFAULT '[]'::jsonb,  -- Array of image URLs (max 3)
   status TEXT DEFAULT 'available' CHECK (status IN ('available', 'sold', 'expired')),
   created_at TIMESTAMPTZ DEFAULT now()
@@ -107,6 +108,11 @@ CREATE TABLE IF NOT EXISTS products (
 CREATE INDEX IF NOT EXISTS idx_products_category ON products(category);
 CREATE INDEX IF NOT EXISTS idx_products_status ON products(status);
 CREATE INDEX IF NOT EXISTS idx_products_seller ON products(seller_id);
+CREATE INDEX IF NOT EXISTS idx_products_pincode ON products(pincode);
+
+-- Migration: Add pincode column to existing products table (run if table already exists)
+-- ALTER TABLE products ADD COLUMN IF NOT EXISTS pincode TEXT;
+-- CREATE INDEX IF NOT EXISTS idx_products_pincode ON products(pincode);
 
 -- RLS for products
 ALTER TABLE products ENABLE ROW LEVEL SECURITY;

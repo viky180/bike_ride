@@ -91,6 +91,7 @@ export function SellProductPage() {
     const [quantity, setQuantity] = useState('')
     const [price, setPrice] = useState('')
     const [location, setLocation] = useState('')
+    const [pincode, setPincode] = useState('')
     const [loading, setLoading] = useState(false)
     const [showCustomInput, setShowCustomInput] = useState(false)
     const [imageFiles, setImageFiles] = useState<File[]>([])
@@ -366,6 +367,7 @@ export function SellProductPage() {
                     quantity: productQuantity,
                     price: parseInt(price),
                     location: location.trim() || null,
+                    pincode: pincode.trim() || null,
                     image_urls: imageUrls,
                     status: 'available'
                 })
@@ -706,6 +708,37 @@ export function SellProductPage() {
                                             border: '2px solid var(--color-border)'
                                         }}
                                     />
+                                </div>
+
+                                {/* Pincode */}
+                                <div className="form-group">
+                                    <label className="form-label">
+                                        {language === 'hi' ? 'पिनकोड *' : 'Pincode *'}
+                                    </label>
+                                    <input
+                                        type="text"
+                                        className="form-input"
+                                        value={pincode}
+                                        onChange={(e) => {
+                                            const val = e.target.value.replace(/\D/g, '').slice(0, 6)
+                                            setPincode(val)
+                                        }}
+                                        placeholder={language === 'hi' ? '6 अंकों का पिनकोड' : '6-digit pincode'}
+                                        maxLength={6}
+                                        pattern="[0-9]{6}"
+                                        style={{
+                                            width: '100%',
+                                            padding: '16px',
+                                            fontSize: '18px',
+                                            borderRadius: '12px',
+                                            border: pincode.length === 6 ? '2px solid var(--color-success)' : '2px solid var(--color-border)'
+                                        }}
+                                    />
+                                    <small style={{ color: 'var(--color-text-light)', marginTop: 4, display: 'block' }}>
+                                        {language === 'hi'
+                                            ? '📍 आपके पिनकोड के पास के खरीदार आपका आइटम देख सकेंगे'
+                                            : '📍 Buyers near your pincode will be able to see your item'}
+                                    </small>
                                 </div>
 
                                 {/* Seller Phone */}
@@ -1083,6 +1116,37 @@ export function SellProductPage() {
                                             border: '2px solid var(--color-border)'
                                         }}
                                     />
+                                </div>
+
+                                {/* Pincode */}
+                                <div className="form-group">
+                                    <label className="form-label">
+                                        {language === 'hi' ? 'पिनकोड *' : 'Pincode *'}
+                                    </label>
+                                    <input
+                                        type="text"
+                                        className="form-input"
+                                        value={pincode}
+                                        onChange={(e) => {
+                                            const val = e.target.value.replace(/\D/g, '').slice(0, 6)
+                                            setPincode(val)
+                                        }}
+                                        placeholder={language === 'hi' ? '6 अंकों का पिनकोड' : '6-digit pincode'}
+                                        maxLength={6}
+                                        pattern="[0-9]{6}"
+                                        style={{
+                                            width: '100%',
+                                            padding: '16px',
+                                            fontSize: '18px',
+                                            borderRadius: '12px',
+                                            border: pincode.length === 6 ? '2px solid var(--color-success)' : '2px solid var(--color-border)'
+                                        }}
+                                    />
+                                    <small style={{ color: 'var(--color-text-light)', marginTop: 4, display: 'block' }}>
+                                        {language === 'hi'
+                                            ? '📍 आपके पिनकोड के पास के खरीदार आपका आइटम देख सकेंगे'
+                                            : '📍 Buyers near your pincode will be able to see your item'}
+                                    </small>
                                 </div>
 
                                 {/* Seller Phone */}
@@ -1474,6 +1538,37 @@ export function SellProductPage() {
                                             border: '2px solid var(--color-border)'
                                         }}
                                     />
+                                </div>
+
+                                {/* Pincode */}
+                                <div className="form-group">
+                                    <label className="form-label">
+                                        {language === 'hi' ? 'पिनकोड *' : 'Pincode *'}
+                                    </label>
+                                    <input
+                                        type="text"
+                                        className="form-input"
+                                        value={pincode}
+                                        onChange={(e) => {
+                                            const val = e.target.value.replace(/\D/g, '').slice(0, 6)
+                                            setPincode(val)
+                                        }}
+                                        placeholder={language === 'hi' ? '6 अंकों का पिनकोड' : '6-digit pincode'}
+                                        maxLength={6}
+                                        pattern="[0-9]{6}"
+                                        style={{
+                                            width: '100%',
+                                            padding: '16px',
+                                            fontSize: '18px',
+                                            borderRadius: '12px',
+                                            border: pincode.length === 6 ? '2px solid var(--color-success)' : '2px solid var(--color-border)'
+                                        }}
+                                    />
+                                    <small style={{ color: 'var(--color-text-light)', marginTop: 4, display: 'block' }}>
+                                        {language === 'hi'
+                                            ? '📍 आपके पिनकोड के पास के खरीदार आपका आइटम देख सकेंगे'
+                                            : '📍 Buyers near your pincode will be able to see your item'}
+                                    </small>
                                 </div>
 
                                 {/* Seller Phone */}
@@ -1905,6 +2000,37 @@ export function SellProductPage() {
                                             border: '2px solid var(--color-border)'
                                         }}
                                     />
+                                </div>
+
+                                {/* Pincode */}
+                                <div className="form-group">
+                                    <label className="form-label">
+                                        {language === 'hi' ? 'पिनकोड *' : 'Pincode *'}
+                                    </label>
+                                    <input
+                                        type="text"
+                                        className="form-input"
+                                        value={pincode}
+                                        onChange={(e) => {
+                                            const val = e.target.value.replace(/\D/g, '').slice(0, 6)
+                                            setPincode(val)
+                                        }}
+                                        placeholder={language === 'hi' ? '6 अंकों का पिनकोड' : '6-digit pincode'}
+                                        maxLength={6}
+                                        pattern="[0-9]{6}"
+                                        style={{
+                                            width: '100%',
+                                            padding: '16px',
+                                            fontSize: '18px',
+                                            borderRadius: '12px',
+                                            border: pincode.length === 6 ? '2px solid var(--color-success)' : '2px solid var(--color-border)'
+                                        }}
+                                    />
+                                    <small style={{ color: 'var(--color-text-light)', marginTop: 4, display: 'block' }}>
+                                        {language === 'hi'
+                                            ? '📍 आपके पिनकोड के पास के खरीदार आपका आइटम देख सकेंगे'
+                                            : '📍 Buyers near your pincode will be able to see your item'}
+                                    </small>
                                 </div>
 
                                 {/* Seller Phone */}

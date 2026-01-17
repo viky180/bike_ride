@@ -6,6 +6,7 @@ import { HERO_CATEGORIES, STANDARD_CATEGORIES, CATEGORIES } from '../lib/categor
 import { Header } from '../components/Header'
 import { BottomNav } from '../components/BottomNav'
 import { ProductCard } from '../components/ProductCard'
+import { getStoredPincode, setStoredPincode } from '../lib/storage'
 
 export function ProducePage() {
     const { t, language } = useApp()
@@ -15,9 +16,20 @@ export function ProducePage() {
     const [selectedCategory, setSelectedCategory] = useState<ProductCategory | null>(null)
     const [showProducts, setShowProducts] = useState(false)
 
+    // Pincode filter state
+    const [filterPincode, setFilterPincode] = useState(getStoredPincode() || '')
+    const [includeNearby, setIncludeNearby] = useState(true)
+
     useEffect(() => {
         fetchProducts()
     }, [])
+
+    // Save pincode to localStorage when it changes
+    useEffect(() => {
+        if (filterPincode.length === 6) {
+            setStoredPincode(filterPincode)
+        }
+    }, [filterPincode])
 
     const fetchProducts = async () => {
         setLoading(true)
@@ -40,9 +52,34 @@ export function ProducePage() {
         }
     }
 
-    const filteredProducts = selectedCategory
-        ? products.filter(p => p.category === selectedCategory)
-        : products
+    // Filter products by category and pincode
+    const getFilteredProducts = () => {
+        let filtered = products
+
+        // Filter by category
+        if (selectedCategory) {
+            filtered = filtered.filter(p => p.category === selectedCategory)
+        }
+
+        // Filter by pincode
+        if (filterPincode.length === 6) {
+            filtered = filtered.filter(p => {
+                if (!p.pincode) return false
+
+                if (includeNearby) {
+                    // Match first 3 digits (same district/area)
+                    return p.pincode.slice(0, 3) === filterPincode.slice(0, 3)
+                } else {
+                    // Exact match only
+                    return p.pincode === filterPincode
+                }
+            })
+        }
+
+        return filtered
+    }
+
+    const filteredProducts = getFilteredProducts()
 
     const handleCategoryClick = (categoryId: ProductCategory) => {
         setSelectedCategory(categoryId)
@@ -54,6 +91,11 @@ export function ProducePage() {
         setShowProducts(false)
     }
 
+    const handleClearPincode = () => {
+        setFilterPincode('')
+        setStoredPincode(null)
+    }
+
     // Category browsing view (Zepto-inspired)
     if (!showProducts) {
         return (
@@ -61,6 +103,101 @@ export function ProducePage() {
                 <Header title={t('browse_produce')} />
 
                 <div className="page category-browse-page">
+                    {/* Pincode Filter Section */}
+                    <div style={{
+                        background: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)',
+                        borderRadius: 16,
+                        padding: 16,
+                        marginBottom: 20,
+                        border: '1px solid #bae6fd'
+                    }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                            <span style={{ fontSize: 20 }}>📍</span>
+                            <span style={{ fontWeight: 600, color: '#0369a1' }}>
+                                {language === 'hi' ? 'अपने एरिया में खोजें' : 'Find in your area'}
+                            </span>
+                        </div>
+                        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                            <input
+                                type="text"
+                                value={filterPincode}
+                                onChange={(e) => {
+                                    const val = e.target.value.replace(/\D/g, '').slice(0, 6)
+                                    setFilterPincode(val)
+                                }}
+                                placeholder={language === 'hi' ? 'पिनकोड डालें' : 'Enter pincode'}
+                                maxLength={6}
+                                style={{
+                                    flex: 1,
+                                    padding: '12px 16px',
+                                    fontSize: 16,
+                                    borderRadius: 12,
+                                    border: filterPincode.length === 6 ? '2px solid #22c55e' : '2px solid #cbd5e1',
+                                    background: 'white'
+                                }}
+                            />
+                            {filterPincode && (
+                                <button
+                                    onClick={handleClearPincode}
+                                    style={{
+                                        padding: '12px 16px',
+                                        borderRadius: 12,
+                                        border: 'none',
+                                        background: '#fee2e2',
+                                        color: '#dc2626',
+                                        fontWeight: 600,
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    ✕
+                                </button>
+                            )}
+                        </div>
+                        {filterPincode.length === 6 && (
+                            <div style={{ marginTop: 12, display: 'flex', gap: 8 }}>
+                                <button
+                                    onClick={() => setIncludeNearby(false)}
+                                    style={{
+                                        flex: 1,
+                                        padding: '10px',
+                                        borderRadius: 8,
+                                        border: 'none',
+                                        background: !includeNearby ? '#0ea5e9' : '#e2e8f0',
+                                        color: !includeNearby ? 'white' : '#64748b',
+                                        fontWeight: 600,
+                                        cursor: 'pointer',
+                                        fontSize: 14
+                                    }}
+                                >
+                                    🎯 {language === 'hi' ? 'सटीक' : 'Exact'}
+                                </button>
+                                <button
+                                    onClick={() => setIncludeNearby(true)}
+                                    style={{
+                                        flex: 1,
+                                        padding: '10px',
+                                        borderRadius: 8,
+                                        border: 'none',
+                                        background: includeNearby ? '#0ea5e9' : '#e2e8f0',
+                                        color: includeNearby ? 'white' : '#64748b',
+                                        fontWeight: 600,
+                                        cursor: 'pointer',
+                                        fontSize: 14
+                                    }}
+                                >
+                                    📍 {language === 'hi' ? 'आस-पास' : 'Nearby'}
+                                </button>
+                            </div>
+                        )}
+                        {filterPincode.length === 6 && (
+                            <small style={{ display: 'block', marginTop: 8, color: '#64748b' }}>
+                                {includeNearby
+                                    ? (language === 'hi' ? `${filterPincode.slice(0, 3)}xxx एरिया से आइटम दिखाएँगे` : `Showing items from ${filterPincode.slice(0, 3)}xxx area`)
+                                    : (language === 'hi' ? `केवल ${filterPincode} से आइटम दिखाएँगे` : `Showing items from ${filterPincode} only`)}
+                            </small>
+                        )}
+                    </div>
+
                     {/* Hero Section - Grocery & Essentials */}
                     <section className="category-section">
                         <h2 className="category-section-title">
@@ -141,6 +278,70 @@ export function ProducePage() {
             <Header title={t('browse_produce')} showBack onBack={handleBackToCategories} />
 
             <div className="page">
+                {/* Pincode Filter (compact) */}
+                <div style={{
+                    display: 'flex',
+                    gap: 8,
+                    alignItems: 'center',
+                    marginBottom: 12,
+                    padding: '8px 12px',
+                    background: '#f8fafc',
+                    borderRadius: 12
+                }}>
+                    <span>📍</span>
+                    <input
+                        type="text"
+                        value={filterPincode}
+                        onChange={(e) => {
+                            const val = e.target.value.replace(/\D/g, '').slice(0, 6)
+                            setFilterPincode(val)
+                        }}
+                        placeholder={language === 'hi' ? 'पिनकोड' : 'Pincode'}
+                        maxLength={6}
+                        style={{
+                            flex: 1,
+                            padding: '8px 12px',
+                            fontSize: 14,
+                            borderRadius: 8,
+                            border: filterPincode.length === 6 ? '2px solid #22c55e' : '1px solid #e2e8f0',
+                            background: 'white'
+                        }}
+                    />
+                    {filterPincode.length === 6 && (
+                        <>
+                            <button
+                                onClick={() => setIncludeNearby(!includeNearby)}
+                                style={{
+                                    padding: '8px 12px',
+                                    borderRadius: 8,
+                                    border: 'none',
+                                    background: includeNearby ? '#dbeafe' : '#f1f5f9',
+                                    color: includeNearby ? '#1d4ed8' : '#64748b',
+                                    fontSize: 12,
+                                    fontWeight: 600,
+                                    cursor: 'pointer',
+                                    whiteSpace: 'nowrap'
+                                }}
+                            >
+                                {includeNearby ? '📍 Nearby' : '🎯 Exact'}
+                            </button>
+                            <button
+                                onClick={handleClearPincode}
+                                style={{
+                                    padding: '8px',
+                                    borderRadius: 8,
+                                    border: 'none',
+                                    background: '#fee2e2',
+                                    color: '#dc2626',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                ✕
+                            </button>
+                        </>
+                    )}
+                </div>
+
                 {/* Category filter tabs */}
                 <div className="category-tabs">
                     <button
@@ -182,7 +383,27 @@ export function ProducePage() {
                 {!loading && filteredProducts.length === 0 && (
                     <div className="empty-state">
                         <div className="icon">🌾</div>
-                        <p>{t('no_products')}</p>
+                        <p>{filterPincode.length === 6
+                            ? (language === 'hi' ? 'इस पिनकोड में कोई आइटम नहीं मिला' : 'No items found in this pincode')
+                            : t('no_products')
+                        }</p>
+                        {filterPincode.length === 6 && (
+                            <button
+                                onClick={handleClearPincode}
+                                style={{
+                                    marginTop: 12,
+                                    padding: '10px 20px',
+                                    borderRadius: 8,
+                                    border: 'none',
+                                    background: 'var(--color-primary)',
+                                    color: 'white',
+                                    fontWeight: 600,
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                {language === 'hi' ? 'सभी देखें' : 'Show all'}
+                            </button>
+                        )}
                     </div>
                 )}
 
@@ -206,3 +427,4 @@ export function ProducePage() {
         </div>
     )
 }
+

@@ -107,3 +107,22 @@ export function getStoredMode(): AppMode | null {
 export function setStoredMode(mode: AppMode): void {
     localStorage.setItem(MODE_KEY, mode)
 }
+
+// Pincode storage for location filtering
+const PINCODE_KEY = 'gramin_sawari_pincode'
+
+export function getStoredPincode(): string | null {
+    try {
+        return localStorage.getItem(PINCODE_KEY)
+    } catch {
+        return null
+    }
+}
+
+export function setStoredPincode(pincode: string | null): void {
+    if (pincode) {
+        localStorage.setItem(PINCODE_KEY, pincode)
+    } else {
+        localStorage.removeItem(PINCODE_KEY)
+    }
+}

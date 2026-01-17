@@ -60,6 +60,7 @@ export interface Product {
     quantity: string
     price: number
     location: string | null
+    pincode: string | null
     image_urls: string[]
     status: 'available' | 'sold' | 'expired'
     created_at: string
