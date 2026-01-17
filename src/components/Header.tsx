@@ -4,14 +4,20 @@ import { useNavigate, useLocation } from 'react-router-dom'
 interface HeaderProps {
     title?: string
     showBack?: boolean
+    onBack?: () => void
 }
 
-export function Header({ title, showBack = false }: HeaderProps) {
+export function Header({ title, showBack = false, onBack }: HeaderProps) {
     const { language, setLanguage, t } = useApp()
     const navigate = useNavigate()
     const location = useLocation()
 
     const handleBack = () => {
+        if (onBack) {
+            onBack()
+            return
+        }
+
         if (location.key !== 'default') {
             navigate(-1)
         } else {
