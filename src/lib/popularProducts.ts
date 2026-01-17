@@ -47,6 +47,41 @@ export const POPULAR_PRODUCTS: Record<ProductCategory, PopularProduct[]> = {
         { name: 'Eggs', icon: '🥚', hi: 'अंडे' },
         { name: 'Honey', icon: '🍯', hi: 'शहद' },
         { name: 'Jaggery', icon: '🟤', hi: 'गुड़' },
+    ],
+    electronics: [
+        { name: 'Mobile Phone', icon: '📱', hi: 'मोबाइल फोन' },
+        { name: 'Laptop', icon: '💻', hi: 'लैपटॉप' },
+        { name: 'Headphones', icon: '🎧', hi: 'हेडफोन' },
+        { name: 'Charger', icon: '🔌', hi: 'चार्जर' },
+    ],
+    clothes: [
+        { name: 'Shirt', icon: '👕', hi: 'शर्ट' },
+        { name: 'Pants', icon: '👖', hi: 'पैंट' },
+        { name: 'Saree', icon: '👗', hi: 'साड़ी' },
+        { name: 'Shoes', icon: '👟', hi: 'जूते' },
+    ],
+    furniture: [
+        { name: 'Chair', icon: '🪑', hi: 'कुर्सी' },
+        { name: 'Table', icon: '🪵', hi: 'मेज़' },
+        { name: 'Bed', icon: '🛏️', hi: 'बिस्तर' },
+        { name: 'Sofa', icon: '🛋️', hi: 'सोफा' },
+    ],
+    books: [
+        { name: 'Textbook', icon: '📚', hi: 'पाठ्यपुस्तक' },
+        { name: 'Novel', icon: '📖', hi: 'उपन्यास' },
+        { name: 'Notebook', icon: '📓', hi: 'नोटबुक' },
+    ],
+    stationery: [
+        { name: 'Pen', icon: '🖊️', hi: 'पेन' },
+        { name: 'Pencil', icon: '✏️', hi: 'पेंसिल' },
+        { name: 'Eraser', icon: '🧹', hi: 'रबड़' },
+        { name: 'Ruler', icon: '📏', hi: 'स्केल' },
+    ],
+    vehicles: [
+        { name: 'Bicycle', icon: '🚲', hi: 'साइकिल' },
+        { name: 'Scooter', icon: '🛵', hi: 'स्कूटर' },
+        { name: 'Motorcycle', icon: '🏍️', hi: 'मोटरसाइकिल' },
+        { name: 'Car', icon: '🚗', hi: 'कार' },
     ]
 }
 
