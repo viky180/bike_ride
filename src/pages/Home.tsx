@@ -17,7 +17,7 @@ export function HomePage() {
 
     const headerTitle = isRideMode
         ? (language === 'hi' ? '🏍️ बाइक सवारी' : '🏍️ Bike Rides')
-        : (language === 'hi' ? '🥬 स्थानीय बाज़ार' : '🥬 Local Market')
+        : (language === 'hi' ? '🛒 स्थानीय बाज़ार' : '🛒 Local Market')
 
     return (
         <div className="app">
@@ -81,23 +81,23 @@ export function HomePage() {
                             <div className="home-section-icon">🛒</div>
                             <div className="home-section-content">
                                 <div className="home-section-title">
-                                    {language === 'hi' ? 'उपज खरीदें' : 'Buy Produce'}
+                                    {language === 'hi' ? 'सामान खरीदें' : 'Buy Items'}
                                 </div>
                                 <div className="home-section-subtitle">
-                                    {language === 'hi' ? 'ताज़ी सब्ज़ियाँ और फल' : 'Fresh vegetables & fruits'}
+                                    {language === 'hi' ? 'किराने, इलेक्ट्रॉनिक्स, कपड़े और अधिक' : 'Grocery, electronics, clothes & more'}
                                 </div>
                             </div>
                             <span className="home-section-arrow">→</span>
                         </Link>
 
                         <Link to="/sell" className="home-section-card" style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)' }}>
-                            <div className="home-section-icon">📦</div>
+                            <div className="home-section-icon">�</div>
                             <div className="home-section-content">
                                 <div className="home-section-title">
-                                    {language === 'hi' ? 'उपज बेचें' : 'Sell Produce'}
+                                    {language === 'hi' ? 'सामान बेचें' : 'Sell Items'}
                                 </div>
                                 <div className="home-section-subtitle">
-                                    {language === 'hi' ? 'अपनी फसल बेचें' : 'List your harvest'}
+                                    {language === 'hi' ? 'कुछ भी बेचें - पुराना या नया' : 'Sell anything - old or new'}
                                 </div>
                             </div>
                             <span className="home-section-arrow">→</span>
@@ -125,12 +125,12 @@ export function HomePage() {
                         ) : (
                             <>
                                 <Link to="/sell" className="quick-action-btn">
-                                    <span>📦</span>
-                                    <span>{t('sell_produce')}</span>
+                                    <span>�</span>
+                                    <span>{language === 'hi' ? 'बेचें' : 'Sell'}</span>
                                 </Link>
                                 <Link to="/my-products" className="quick-action-btn">
                                     <span>🏷️</span>
-                                    <span>{t('my_products')}</span>
+                                    <span>{language === 'hi' ? 'मेरे आइटम' : 'My Items'}</span>
                                 </Link>
                                 <Link to="/request" className="quick-action-btn">
                                     <span>🔔</span>

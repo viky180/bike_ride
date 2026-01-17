@@ -50,7 +50,7 @@ export interface Booking {
 }
 
 // Product categories
-export type ProductCategory = 'vegetables' | 'fruits' | 'grains' | 'dairy' | 'other'
+export type ProductCategory = 'vegetables' | 'fruits' | 'grains' | 'dairy' | 'electronics' | 'clothes' | 'furniture' | 'books' | 'stationery' | 'vehicles' | 'other'
 
 export interface Product {
     id: string
