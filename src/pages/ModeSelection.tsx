@@ -42,33 +42,50 @@ export function ModeSelection() {
 
             {/* Mode Cards */}
             <div className="mode-selection-cards">
+                {/* Bike Ride Sharing - Temporarily Deactivated */}
                 <button
-                    className="mode-card ride-mode"
-                    onClick={() => handleSelectMode('ride')}
+                    className="mode-card ride-mode disabled"
+                    disabled
+                    style={{ opacity: 0.5, cursor: 'not-allowed', position: 'relative' }}
                 >
+                    <div className="coming-soon-badge" style={{
+                        position: 'absolute',
+                        top: '10px',
+                        right: '10px',
+                        background: 'linear-gradient(135deg, #ff6b6b, #ee5a5a)',
+                        color: 'white',
+                        padding: '4px 12px',
+                        borderRadius: '12px',
+                        fontSize: '0.75rem',
+                        fontWeight: '600',
+                        boxShadow: '0 2px 8px rgba(238, 90, 90, 0.3)'
+                    }}>
+                        {language === 'hi' ? 'जल्द आ रहा है' : 'Coming Soon'}
+                    </div>
                     <div className="mode-card-icon">🏍️</div>
                     <div className="mode-card-content">
                         <div className="mode-card-title">
-                            {language === 'hi' ? 'बाइक सवारी' : 'Bike Ride'}
+                            {language === 'hi' ? 'बाइक सवारी साझाकरण' : 'Bike Ride Sharing'}
                         </div>
                         <div className="mode-card-subtitle">
-                            {language === 'hi' ? 'सवारी खोजें या दें' : 'Find or offer rides'}
+                            {language === 'hi' ? 'सवारी खोजें या पोस्ट करें' : 'Find or post rides'}
                         </div>
                     </div>
-                    <span className="mode-card-arrow">→</span>
+                    <span className="mode-card-arrow" style={{ opacity: 0.3 }}>→</span>
                 </button>
 
+                {/* Buy & Sell Online - Active */}
                 <button
                     className="mode-card produce-mode"
                     onClick={() => handleSelectMode('produce')}
                 >
-                    <div className="mode-card-icon">🥬</div>
+                    <div className="mode-card-icon">🛍️</div>
                     <div className="mode-card-content">
                         <div className="mode-card-title">
-                            {language === 'hi' ? 'उपज खरीदें/बेचें' : 'Buy / Sell Produce'}
+                            {language === 'hi' ? 'ऑनलाइन खरीदें और बेचें' : 'Buy & Sell Online'}
                         </div>
                         <div className="mode-card-subtitle">
-                            {language === 'hi' ? 'सब्ज़ी, फल, अनाज' : 'Local vegetables, fruits, grains'}
+                            {language === 'hi' ? 'उत्पाद खरीदें या बेचें' : 'Buy or sell products'}
                         </div>
                     </div>
                     <span className="mode-card-arrow">→</span>

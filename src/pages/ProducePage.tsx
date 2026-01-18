@@ -7,6 +7,7 @@ import { Header } from '../components/Header'
 import { BottomNav } from '../components/BottomNav'
 import { ProductCard } from '../components/ProductCard'
 import { getStoredPincode, setStoredPincode } from '../lib/storage'
+import { useGeolocation } from '../lib/useGeolocation'
 
 export function ProducePage() {
     const { t, language } = useApp()
@@ -20,6 +21,9 @@ export function ProducePage() {
     const [filterPincode, setFilterPincode] = useState(getStoredPincode() || '')
     const [includeNearby, setIncludeNearby] = useState(true)
 
+    // Geolocation for auto-detect
+    const { pincode: detectedPincode, loading: detectingLocation, error: locationError, detectLocation } = useGeolocation()
+
     useEffect(() => {
         fetchProducts()
     }, [])
@@ -30,6 +34,13 @@ export function ProducePage() {
             setStoredPincode(filterPincode)
         }
     }, [filterPincode])
+
+    // Auto-fill pincode when detected
+    useEffect(() => {
+        if (detectedPincode) {
+            setFilterPincode(detectedPincode)
+        }
+    }, [detectedPincode])
 
     const fetchProducts = async () => {
         setLoading(true)
@@ -152,6 +163,39 @@ export function ProducePage() {
                                     ✕
                                 </button>
                             )}
+                            <button
+                                onClick={detectLocation}
+                                disabled={detectingLocation}
+                                style={{
+                                    padding: '12px 16px',
+                                    borderRadius: 12,
+                                    border: 'none',
+                                    background: detectingLocation ? '#e2e8f0' : 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+                                    color: detectingLocation ? '#94a3b8' : 'white',
+                                    fontWeight: 600,
+                                    cursor: detectingLocation ? 'not-allowed' : 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 6,
+                                    boxShadow: detectingLocation ? 'none' : '0 2px 8px rgba(59, 130, 246, 0.3)'
+                                }}
+                            >
+                                {detectingLocation ? (
+                                    <>
+                                        <span style={{
+                                            display: 'inline-block',
+                                            width: 14,
+                                            height: 14,
+                                            border: '2px solid #94a3b8',
+                                            borderTopColor: 'transparent',
+                                            borderRadius: '50%',
+                                            animation: 'spin 1s linear infinite'
+                                        }} />
+                                    </>
+                                ) : (
+                                    <>📍 {language === 'hi' ? 'पता लगाएं' : 'Detect'}</>
+                                )}
+                            </button>
                         </div>
                         {filterPincode.length === 6 && (
                             <div style={{ marginTop: 12, display: 'flex', gap: 8 }}>
@@ -196,12 +240,22 @@ export function ProducePage() {
                                     : (language === 'hi' ? `केवल ${filterPincode} से आइटम दिखाएँगे` : `Showing items from ${filterPincode} only`)}
                             </small>
                         )}
+                        {locationError && (
+                            <small style={{ display: 'block', marginTop: 8, color: '#dc2626' }}>
+                                ⚠️ {locationError}
+                            </small>
+                        )}
+                        <style>{`
+                            @keyframes spin {
+                                to { transform: rotate(360deg); }
+                            }
+                        `}</style>
                     </div>
 
-                    {/* Hero Section - Grocery & Essentials */}
+                    {/* Hero Section - Agriculture / खेती-बाड़ी */}
                     <section className="category-section">
-                        <h2 className="category-section-title">
-                            {language === 'hi' ? 'ग्रोसरी और मुख्य ज़रूरतें' : 'Grocery & Essentials'}
+                        <h2 className="section-title" style={{ marginBottom: 16 }}>
+                            🌾 {language === 'hi' ? 'खेती-बाड़ी' : 'Agriculture'}
                         </h2>
                         <div className="category-hero-grid">
                             {HERO_CATEGORIES.map(cat => (
@@ -268,7 +322,7 @@ export function ProducePage() {
                 </div>
 
                 <BottomNav />
-            </div>
+            </div >
         )
     }
 
@@ -340,6 +394,22 @@ export function ProducePage() {
                             </button>
                         </>
                     )}
+                    <button
+                        onClick={detectLocation}
+                        disabled={detectingLocation}
+                        style={{
+                            padding: '8px 12px',
+                            borderRadius: 8,
+                            border: 'none',
+                            background: detectingLocation ? '#e2e8f0' : '#dbeafe',
+                            color: detectingLocation ? '#94a3b8' : '#1d4ed8',
+                            fontSize: 12,
+                            fontWeight: 600,
+                            cursor: detectingLocation ? 'not-allowed' : 'pointer'
+                        }}
+                    >
+                        {detectingLocation ? '...' : '📍'}
+                    </button>
                 </div>
 
                 {/* Category filter tabs */}

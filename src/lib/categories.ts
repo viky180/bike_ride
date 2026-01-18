@@ -11,7 +11,7 @@ export interface Category {
     isHero?: boolean // Featured in hero section
 }
 
-// Hero categories - featured with larger cards
+// Hero categories - Agriculture / खेती-बाड़ी section
 export const HERO_CATEGORIES: Category[] = [
     {
         id: 'vegetables',
@@ -25,10 +25,28 @@ export const HERO_CATEGORIES: Category[] = [
     {
         id: 'dairy',
         icon: '🥛',
-        en: 'Dairy & Grains',
-        hi: 'दूध और अनाज',
+        en: 'Dairy',
+        hi: 'दूध/डेयरी',
         color: '#3b82f6',
         image: '/images/categories/dairy.png',
+        isHero: true
+    },
+    {
+        id: 'grains',
+        icon: '🌾',
+        en: 'Grains',
+        hi: 'अनाज',
+        color: '#f59e0b',
+        image: '/images/categories/grain.png',
+        isHero: true
+    },
+    {
+        id: 'livestock',
+        icon: '🐄',
+        en: 'Livestock',
+        hi: 'पशु',
+        color: '#854d0e',
+        image: '/images/categories/livestock.png',
         isHero: true
     }
 ]
@@ -158,6 +176,13 @@ export const CATEGORIES: Category[] = [
         en: 'Vehicles',
         hi: 'वाहन',
         color: '#f97316'
+    },
+    {
+        id: 'livestock',
+        icon: '🐄',
+        en: 'Livestock',
+        hi: 'पशु',
+        color: '#854d0e'
     },
     {
         id: 'other',

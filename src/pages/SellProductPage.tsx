@@ -6,6 +6,7 @@ import { HERO_CATEGORIES, STANDARD_CATEGORIES, CATEGORIES } from '../lib/categor
 import { getPopularProducts, PopularProduct } from '../lib/popularProducts'
 import { Header } from '../components/Header'
 import { ImageUpload } from '../components/ImageUpload'
+import { PincodeInput } from '../components/PincodeInput'
 
 // Electronics sub-items
 const ELECTRONICS_ITEMS = [
@@ -80,6 +81,36 @@ const FUEL_OPTIONS = [
     { id: 'manual', label: 'Manual/मैनुअल', icon: '🚴' },
 ]
 
+// Livestock sub-items
+const LIVESTOCK_ITEMS = [
+    { id: 'cow', icon: '🐄', en: 'Cow', hi: 'गाय' },
+    { id: 'buffalo', icon: '🐃', en: 'Buffalo', hi: 'भैंस' },
+    { id: 'goat', icon: '🐐', en: 'Goat', hi: 'बकरी' },
+    { id: 'sheep', icon: '🐑', en: 'Sheep', hi: 'भेड़' },
+    { id: 'other', icon: '📦', en: 'Other', hi: 'अन्य' },
+]
+
+// Selling urgency options
+const URGENCY_OPTIONS = [
+    { id: '1-3', hi: '1 से 3 दिन', en: '1-3 days' },
+    { id: '4-7', hi: '4 से 7 दिन', en: '4-7 days' },
+    { id: '7+', hi: 'हफ्ते से ज़्यादा', en: '1+ week' },
+]
+
+// Selling type options
+const SELLING_TYPE_OPTIONS = [
+    { id: 'home', hi: 'खूँटे का पशु', en: 'Home-raised animal' },
+    { id: 'mandi', hi: 'मंडी का पशु', en: 'Market animal' },
+]
+
+// Lactation stages
+const LACTATION_OPTIONS = [
+    { id: 'none', hi: 'ब्यायी नहीं', en: 'Not calved' },
+    { id: 'first', hi: 'पहला', en: 'First' },
+    { id: 'second', hi: 'दूसरा', en: 'Second' },
+    { id: 'other', hi: 'अन्य', en: 'Other' },
+]
+
 export function SellProductPage() {
     const { t, user, showToast, language } = useApp()
     const navigate = useNavigate()
@@ -133,6 +164,13 @@ export function SellProductPage() {
     const [hasInsurance, setHasInsurance] = useState<boolean | null>(null)
     const [ownerCount, setOwnerCount] = useState('')
 
+    // Livestock-specific fields
+    const [livestockItem, setLivestockItem] = useState<string>('')
+    const [sellingUrgency, setSellingUrgency] = useState('')
+    const [sellingType, setSellingType] = useState('')
+    const [lactationStage, setLactationStage] = useState('')
+    const [milkYield, setMilkYield] = useState('')
+
     const handleSelectCategory = (cat: ProductCategory) => {
         setCategory(cat)
         setName('')
@@ -168,11 +206,29 @@ export function SellProductPage() {
         setHasRC(null)
         setHasInsurance(null)
         setOwnerCount('')
+        // Reset livestock fields
+        setLivestockItem('')
+        setSellingUrgency('')
+        setSellingType('')
+        setLactationStage('')
+        setMilkYield('')
         setStep(2)
     }
 
     const handleSelectVehiclesItem = (item: typeof VEHICLES_ITEMS[0]) => {
         setVehiclesItem(item.id)
+        setName(language === 'hi' ? item.hi : item.en)
+        setSelectedIcon(item.icon)
+        if (item.id === 'other') {
+            setShowCustomInput(true)
+            setName('')
+        } else {
+            setShowCustomInput(false)
+        }
+    }
+
+    const handleSelectLivestockItem = (item: typeof LIVESTOCK_ITEMS[0]) => {
+        setLivestockItem(item.id)
         setName(language === 'hi' ? item.hi : item.en)
         setSelectedIcon(item.icon)
         if (item.id === 'other') {
@@ -356,6 +412,27 @@ export function SellProductPage() {
                 if (defects) details.push(`दोष: ${defects}`)
                 details.push(`📞 ${sellerPhone}${whatsappEnabled ? ' (WhatsApp)' : ''}`)
                 productQuantity = details.join(' | ')
+            } else if (category === 'livestock') {
+                productName = name.trim()
+
+                // Build description for livestock
+                const details: string[] = []
+                if (sellingUrgency) {
+                    const urgency = URGENCY_OPTIONS.find(u => u.id === sellingUrgency)
+                    if (urgency) details.push(urgency.hi)
+                }
+                if (sellingType) {
+                    const type = SELLING_TYPE_OPTIONS.find(t => t.id === sellingType)
+                    if (type) details.push(type.hi)
+                }
+                if (lactationStage) {
+                    const stage = LACTATION_OPTIONS.find(l => l.id === lactationStage)
+                    if (stage) details.push(`ब्यांत: ${stage.hi}`)
+                }
+                if (milkYield) details.push(`दूध: ${milkYield} लीटर/दिन`)
+                if (defects) details.push(`विवरण: ${defects}`)
+                details.push(`📞 ${sellerPhone}${whatsappEnabled ? ' (WhatsApp)' : ''}`)
+                productQuantity = details.join(' | ')
             }
 
             const { error } = await supabase
@@ -392,12 +469,14 @@ export function SellProductPage() {
     const isClothes = category === 'clothes'
     const isBooks = category === 'books'
     const isVehicles = category === 'vehicles'
+    const isLivestock = category === 'livestock'
 
-    // Check if electronics form is complete enough to show remaining fields
+    // Check if form is complete enough to show remaining fields
     const showElectronicsDetails = isElectronics && electronicsItem && (electronicsItem !== 'other' || name.trim())
     const showClothesDetails = isClothes && clothesItem && (clothesItem !== 'other' || name.trim())
     const showBooksDetails = isBooks && booksItem && (booksItem !== 'other' || name.trim())
     const showVehiclesDetails = isVehicles && vehiclesItem && (vehiclesItem !== 'other' || name.trim())
+    const showLivestockDetails = isLivestock && livestockItem && (livestockItem !== 'other' || name.trim())
 
     return (
         <div className="app">
@@ -407,10 +486,10 @@ export function SellProductPage() {
                 {/* Step 1: Select Category - Zepto-inspired layout */}
                 {step === 1 && (
                     <>
-                        {/* Hero Section - Grocery & Essentials */}
+                        {/* Hero Section - Agriculture / खेती-बाड़ी */}
                         <section className="category-section">
-                            <h2 className="category-section-title">
-                                {language === 'hi' ? 'ग्रोसरी और मुख्य ज़रूरतें' : 'Grocery & Essentials'}
+                            <h2 className="section-title" style={{ marginBottom: 16 }}>
+                                🌾 {language === 'hi' ? 'खेती-बाड़ी' : 'Agriculture'}
                             </h2>
                             <div className="sell-category-hero-grid">
                                 {HERO_CATEGORIES.map(cat => (
@@ -710,36 +789,12 @@ export function SellProductPage() {
                                     />
                                 </div>
 
-                                {/* Pincode */}
-                                <div className="form-group">
-                                    <label className="form-label">
-                                        {language === 'hi' ? 'पिनकोड *' : 'Pincode *'}
-                                    </label>
-                                    <input
-                                        type="text"
-                                        className="form-input"
-                                        value={pincode}
-                                        onChange={(e) => {
-                                            const val = e.target.value.replace(/\D/g, '').slice(0, 6)
-                                            setPincode(val)
-                                        }}
-                                        placeholder={language === 'hi' ? '6 अंकों का पिनकोड' : '6-digit pincode'}
-                                        maxLength={6}
-                                        pattern="[0-9]{6}"
-                                        style={{
-                                            width: '100%',
-                                            padding: '16px',
-                                            fontSize: '18px',
-                                            borderRadius: '12px',
-                                            border: pincode.length === 6 ? '2px solid var(--color-success)' : '2px solid var(--color-border)'
-                                        }}
-                                    />
-                                    <small style={{ color: 'var(--color-text-light)', marginTop: 4, display: 'block' }}>
-                                        {language === 'hi'
-                                            ? '📍 आपके पिनकोड के पास के खरीदार आपका आइटम देख सकेंगे'
-                                            : '📍 Buyers near your pincode will be able to see your item'}
-                                    </small>
-                                </div>
+                                {/* Pincode with Auto-Detect */}
+                                <PincodeInput
+                                    value={pincode}
+                                    onChange={setPincode}
+                                    required
+                                />
 
                                 {/* Seller Phone */}
                                 <div className="form-group">
@@ -1118,36 +1173,12 @@ export function SellProductPage() {
                                     />
                                 </div>
 
-                                {/* Pincode */}
-                                <div className="form-group">
-                                    <label className="form-label">
-                                        {language === 'hi' ? 'पिनकोड *' : 'Pincode *'}
-                                    </label>
-                                    <input
-                                        type="text"
-                                        className="form-input"
-                                        value={pincode}
-                                        onChange={(e) => {
-                                            const val = e.target.value.replace(/\D/g, '').slice(0, 6)
-                                            setPincode(val)
-                                        }}
-                                        placeholder={language === 'hi' ? '6 अंकों का पिनकोड' : '6-digit pincode'}
-                                        maxLength={6}
-                                        pattern="[0-9]{6}"
-                                        style={{
-                                            width: '100%',
-                                            padding: '16px',
-                                            fontSize: '18px',
-                                            borderRadius: '12px',
-                                            border: pincode.length === 6 ? '2px solid var(--color-success)' : '2px solid var(--color-border)'
-                                        }}
-                                    />
-                                    <small style={{ color: 'var(--color-text-light)', marginTop: 4, display: 'block' }}>
-                                        {language === 'hi'
-                                            ? '📍 आपके पिनकोड के पास के खरीदार आपका आइटम देख सकेंगे'
-                                            : '📍 Buyers near your pincode will be able to see your item'}
-                                    </small>
-                                </div>
+                                {/* Pincode with Auto-Detect */}
+                                <PincodeInput
+                                    value={pincode}
+                                    onChange={setPincode}
+                                    required
+                                />
 
                                 {/* Seller Phone */}
                                 <div className="form-group">
@@ -1540,36 +1571,12 @@ export function SellProductPage() {
                                     />
                                 </div>
 
-                                {/* Pincode */}
-                                <div className="form-group">
-                                    <label className="form-label">
-                                        {language === 'hi' ? 'पिनकोड *' : 'Pincode *'}
-                                    </label>
-                                    <input
-                                        type="text"
-                                        className="form-input"
-                                        value={pincode}
-                                        onChange={(e) => {
-                                            const val = e.target.value.replace(/\D/g, '').slice(0, 6)
-                                            setPincode(val)
-                                        }}
-                                        placeholder={language === 'hi' ? '6 अंकों का पिनकोड' : '6-digit pincode'}
-                                        maxLength={6}
-                                        pattern="[0-9]{6}"
-                                        style={{
-                                            width: '100%',
-                                            padding: '16px',
-                                            fontSize: '18px',
-                                            borderRadius: '12px',
-                                            border: pincode.length === 6 ? '2px solid var(--color-success)' : '2px solid var(--color-border)'
-                                        }}
-                                    />
-                                    <small style={{ color: 'var(--color-text-light)', marginTop: 4, display: 'block' }}>
-                                        {language === 'hi'
-                                            ? '📍 आपके पिनकोड के पास के खरीदार आपका आइटम देख सकेंगे'
-                                            : '📍 Buyers near your pincode will be able to see your item'}
-                                    </small>
-                                </div>
+                                {/* Pincode with Auto-Detect */}
+                                <PincodeInput
+                                    value={pincode}
+                                    onChange={setPincode}
+                                    required
+                                />
 
                                 {/* Seller Phone */}
                                 <div className="form-group">
@@ -2002,36 +2009,12 @@ export function SellProductPage() {
                                     />
                                 </div>
 
-                                {/* Pincode */}
-                                <div className="form-group">
-                                    <label className="form-label">
-                                        {language === 'hi' ? 'पिनकोड *' : 'Pincode *'}
-                                    </label>
-                                    <input
-                                        type="text"
-                                        className="form-input"
-                                        value={pincode}
-                                        onChange={(e) => {
-                                            const val = e.target.value.replace(/\D/g, '').slice(0, 6)
-                                            setPincode(val)
-                                        }}
-                                        placeholder={language === 'hi' ? '6 अंकों का पिनकोड' : '6-digit pincode'}
-                                        maxLength={6}
-                                        pattern="[0-9]{6}"
-                                        style={{
-                                            width: '100%',
-                                            padding: '16px',
-                                            fontSize: '18px',
-                                            borderRadius: '12px',
-                                            border: pincode.length === 6 ? '2px solid var(--color-success)' : '2px solid var(--color-border)'
-                                        }}
-                                    />
-                                    <small style={{ color: 'var(--color-text-light)', marginTop: 4, display: 'block' }}>
-                                        {language === 'hi'
-                                            ? '📍 आपके पिनकोड के पास के खरीदार आपका आइटम देख सकेंगे'
-                                            : '📍 Buyers near your pincode will be able to see your item'}
-                                    </small>
-                                </div>
+                                {/* Pincode with Auto-Detect */}
+                                <PincodeInput
+                                    value={pincode}
+                                    onChange={setPincode}
+                                    required
+                                />
 
                                 {/* Seller Phone */}
                                 <div className="form-group">
@@ -2155,8 +2138,420 @@ export function SellProductPage() {
                     </>
                 )}
 
-                {/* Step 2: Regular product form (non-electronics, non-clothes, non-books, non-vehicles) */}
-                {step === 2 && !isElectronics && !isClothes && !isBooks && !isVehicles && (
+                {/* Step 2: Livestock form - Hindi-first पशु विक्रय फॉर्म */}
+                {step === 2 && isLivestock && (
+                    <>
+                        {/* Selected category badge */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+                            <span style={{ fontSize: 24 }}>🐄</span>
+                            <span style={{ fontWeight: 600 }}>पशु बेचें</span>
+                            <button
+                                onClick={() => setStep(1)}
+                                style={{
+                                    marginLeft: 'auto',
+                                    background: 'var(--color-border)',
+                                    border: 'none',
+                                    padding: '4px 12px',
+                                    borderRadius: 20,
+                                    fontSize: 14
+                                }}
+                            >
+                                बदलें
+                            </button>
+                        </div>
+
+                        {/* Animal Type Selection - कौन सा पशु */}
+                        <div className="form-group">
+                            <label className="form-label" style={{ fontSize: 18, fontWeight: 600 }}>
+                                🐄 कौन सा पशु बेचना है?
+                            </label>
+                            <div className="popular-products-grid">
+                                {LIVESTOCK_ITEMS.map(item => (
+                                    <button
+                                        key={item.id}
+                                        className={`popular-product-btn ${livestockItem === item.id ? 'selected' : ''}`}
+                                        onClick={() => handleSelectLivestockItem(item)}
+                                        style={{ padding: '16px', minHeight: 80 }}
+                                    >
+                                        <span className="icon" style={{ fontSize: 32 }}>{item.icon}</span>
+                                        <span className="name" style={{ fontSize: 16, fontWeight: 600 }}>{item.hi}</span>
+                                    </button>
+                                ))}
+                            </div>
+
+                            {/* Custom input for "Other" */}
+                            {showCustomInput && (
+                                <input
+                                    type="text"
+                                    className="form-input"
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    placeholder="पशु का नाम लिखें..."
+                                    autoFocus
+                                    style={{
+                                        width: '100%',
+                                        padding: '16px',
+                                        fontSize: '18px',
+                                        borderRadius: '12px',
+                                        border: '2px solid var(--color-primary)',
+                                        marginTop: '12px'
+                                    }}
+                                />
+                            )}
+                        </div>
+
+                        {/* Show detailed form when animal is selected */}
+                        {showLivestockDetails && (
+                            <>
+                                {/* Price Section - रेट (₹) */}
+                                <div className="form-group">
+                                    <label className="form-label" style={{ fontSize: 18, fontWeight: 600 }}>
+                                        💰 रेट (₹) *
+                                    </label>
+                                    <small style={{ display: 'block', marginBottom: 8, color: 'var(--color-text-light)' }}>
+                                        सही रेट डालें, उससे ज़्यादा ग्राहक कॉल करते हैं
+                                    </small>
+                                    <input
+                                        type="number"
+                                        className="form-input"
+                                        value={price}
+                                        onChange={(e) => setPrice(e.target.value)}
+                                        placeholder="जैसे: ₹40,000"
+                                        style={{
+                                            width: '100%',
+                                            padding: '20px',
+                                            fontSize: '24px',
+                                            fontWeight: 700,
+                                            borderRadius: '12px',
+                                            border: '2px solid var(--color-border)'
+                                        }}
+                                    />
+                                    <button
+                                        type="button"
+                                        style={{
+                                            marginTop: 12,
+                                            width: '100%',
+                                            padding: '14px',
+                                            borderRadius: 12,
+                                            border: '2px dashed #3b82f6',
+                                            background: '#eff6ff',
+                                            color: '#1d4ed8',
+                                            fontSize: 16,
+                                            fontWeight: 600,
+                                            cursor: 'pointer',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            gap: 8
+                                        }}
+                                        onClick={() => alert('जल्द आ रहा है!')}
+                                    >
+                                        ₹ इस पशु का सही रेट जानें
+                                    </button>
+                                </div>
+
+                                {/* Selling Urgency - कितने दिन में बेचना है */}
+                                <div className="form-group">
+                                    <label className="form-label" style={{ fontSize: 18, fontWeight: 600 }}>
+                                        ⏰ कितने दिन में बेचना है?
+                                    </label>
+                                    <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                                        {URGENCY_OPTIONS.map(opt => (
+                                            <button
+                                                key={opt.id}
+                                                type="button"
+                                                onClick={() => setSellingUrgency(opt.id)}
+                                                style={{
+                                                    flex: 1,
+                                                    minWidth: 100,
+                                                    padding: '14px 16px',
+                                                    borderRadius: 25,
+                                                    border: 'none',
+                                                    background: sellingUrgency === opt.id
+                                                        ? 'linear-gradient(135deg, #22c55e, #16a34a)'
+                                                        : '#f1f5f9',
+                                                    color: sellingUrgency === opt.id ? 'white' : '#475569',
+                                                    fontSize: 15,
+                                                    fontWeight: 600,
+                                                    cursor: 'pointer'
+                                                }}
+                                            >
+                                                {opt.hi}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Selling Type - कैसा पशु */}
+                                <div className="form-group">
+                                    <label className="form-label" style={{ fontSize: 18, fontWeight: 600 }}>
+                                        🏠 कैसा पशु बेचना चाहते हो?
+                                    </label>
+                                    <div style={{ display: 'flex', gap: 12 }}>
+                                        {SELLING_TYPE_OPTIONS.map(opt => (
+                                            <button
+                                                key={opt.id}
+                                                type="button"
+                                                onClick={() => setSellingType(opt.id)}
+                                                style={{
+                                                    flex: 1,
+                                                    padding: '16px',
+                                                    borderRadius: 12,
+                                                    border: sellingType === opt.id ? '2px solid #22c55e' : '2px solid #e2e8f0',
+                                                    background: sellingType === opt.id ? '#dcfce7' : 'white',
+                                                    color: sellingType === opt.id ? '#166534' : '#475569',
+                                                    fontSize: 16,
+                                                    fontWeight: 600,
+                                                    cursor: 'pointer'
+                                                }}
+                                            >
+                                                {opt.hi}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Media Upload */}
+                                <div className="form-group">
+                                    <label className="form-label" style={{ fontSize: 18, fontWeight: 600 }}>
+                                        📸 वीडियो या फोटो डालें *
+                                    </label>
+                                    <small style={{ display: 'block', marginBottom: 12, color: 'var(--color-text-light)' }}>
+                                        अच्छी फोटो डालने पर जल्दी बिकती है
+                                    </small>
+                                    <ImageUpload
+                                        onImagesChange={handleImagesChange}
+                                        currentPreviews={imagePreviews}
+                                        maxImages={5}
+                                    />
+                                </div>
+
+                                {/* Lactation Stage - ब्यांत (only for dairy animals) */}
+                                {(livestockItem === 'cow' || livestockItem === 'buffalo') && (
+                                    <div className="form-group">
+                                        <label className="form-label" style={{ fontSize: 18, fontWeight: 600 }}>
+                                            🍼 कौन सा ब्यांत?
+                                        </label>
+                                        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                                            {LACTATION_OPTIONS.map(opt => (
+                                                <button
+                                                    key={opt.id}
+                                                    type="button"
+                                                    onClick={() => setLactationStage(opt.id)}
+                                                    style={{
+                                                        flex: 1,
+                                                        minWidth: 80,
+                                                        padding: '12px 16px',
+                                                        borderRadius: 25,
+                                                        border: 'none',
+                                                        background: lactationStage === opt.id
+                                                            ? 'linear-gradient(135deg, #3b82f6, #1d4ed8)'
+                                                            : '#f1f5f9',
+                                                        color: lactationStage === opt.id ? 'white' : '#475569',
+                                                        fontSize: 15,
+                                                        fontWeight: 600,
+                                                        cursor: 'pointer'
+                                                    }}
+                                                >
+                                                    {opt.hi}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Milk Yield - दूध (only for dairy animals that have calved) */}
+                                {(livestockItem === 'cow' || livestockItem === 'buffalo') && lactationStage && lactationStage !== 'none' && (
+                                    <div className="form-group">
+                                        <label className="form-label" style={{ fontSize: 18, fontWeight: 600 }}>
+                                            🥛 अभी का दूध (प्रति-दिन) *
+                                        </label>
+                                        <small style={{ display: 'block', marginBottom: 8, color: 'var(--color-text-light)' }}>
+                                            आज के 2 समय का कुल दूध
+                                        </small>
+                                        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                                            <input
+                                                type="number"
+                                                className="form-input"
+                                                value={milkYield}
+                                                onChange={(e) => setMilkYield(e.target.value)}
+                                                placeholder="जैसे: 10"
+                                                style={{
+                                                    flex: 1,
+                                                    padding: '16px',
+                                                    fontSize: '20px',
+                                                    fontWeight: 600,
+                                                    borderRadius: '12px',
+                                                    border: '2px solid var(--color-border)'
+                                                }}
+                                            />
+                                            <span style={{ fontSize: 18, fontWeight: 600, color: 'var(--color-text-light)' }}>
+                                                लीटर
+                                            </span>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Additional Details */}
+                                <div className="form-group">
+                                    <label className="form-label" style={{ fontSize: 18, fontWeight: 600 }}>
+                                        📝 अन्य विवरण
+                                    </label>
+                                    <textarea
+                                        className="form-input"
+                                        value={defects}
+                                        onChange={(e) => setDefects(e.target.value)}
+                                        placeholder="जैसे: 3 साल की, बहुत शांत, टीके लगे हुए..."
+                                        rows={3}
+                                        style={{
+                                            width: '100%',
+                                            padding: '16px',
+                                            fontSize: '16px',
+                                            borderRadius: '12px',
+                                            border: '2px solid var(--color-border)',
+                                            resize: 'vertical'
+                                        }}
+                                    />
+                                </div>
+
+                                {/* Location */}
+                                <div className="form-group">
+                                    <label className="form-label" style={{ fontSize: 18, fontWeight: 600 }}>
+                                        📍 पता/गाँव
+                                    </label>
+                                    <input
+                                        type="text"
+                                        className="form-input"
+                                        value={location}
+                                        onChange={(e) => setLocation(e.target.value)}
+                                        placeholder="जैसे: रामपुर गाँव, ब्लॉक..."
+                                        style={{
+                                            width: '100%',
+                                            padding: '16px',
+                                            fontSize: '18px',
+                                            borderRadius: '12px',
+                                            border: '2px solid var(--color-border)'
+                                        }}
+                                    />
+                                </div>
+
+                                {/* Pincode with Auto-Detect */}
+                                <PincodeInput
+                                    value={pincode}
+                                    onChange={setPincode}
+                                    required
+                                />
+
+                                {/* Seller Phone */}
+                                <div className="form-group">
+                                    <label className="form-label" style={{ fontSize: 18, fontWeight: 600 }}>
+                                        📞 संपर्क नंबर *
+                                    </label>
+                                    <input
+                                        type="tel"
+                                        className="form-input"
+                                        value={sellerPhone}
+                                        onChange={(e) => setSellerPhone(e.target.value)}
+                                        placeholder="10 अंकों का मोबाइल नंबर"
+                                        style={{
+                                            width: '100%',
+                                            padding: '16px',
+                                            fontSize: '18px',
+                                            borderRadius: '12px',
+                                            border: '2px solid var(--color-border)'
+                                        }}
+                                    />
+                                </div>
+
+                                {/* WhatsApp Contact */}
+                                <div className="form-group">
+                                    <label
+                                        style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: 12,
+                                            padding: '16px',
+                                            background: whatsappEnabled ? '#dcfce7' : 'var(--color-bg)',
+                                            borderRadius: '12px',
+                                            cursor: 'pointer',
+                                            border: '2px solid',
+                                            borderColor: whatsappEnabled ? '#22c55e' : 'var(--color-border)'
+                                        }}
+                                    >
+                                        <input
+                                            type="checkbox"
+                                            checked={whatsappEnabled}
+                                            onChange={(e) => setWhatsappEnabled(e.target.checked)}
+                                            style={{ width: 24, height: 24 }}
+                                        />
+                                        <span style={{ fontSize: 24 }}>💬</span>
+                                        <span style={{ fontWeight: 600 }}>WhatsApp पर संपर्क करें</span>
+                                    </label>
+                                </div>
+
+                                {/* Summary Card */}
+                                <div className="card mb-lg" style={{ background: 'linear-gradient(135deg, #fef3c7, #fde68a)' }}>
+                                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: 12 }}>
+                                        <span style={{ fontSize: 40 }}>{selectedIcon}</span>
+                                        <div style={{ flex: 1 }}>
+                                            <div style={{ fontWeight: 700, fontSize: 20 }}>{name}</div>
+                                            {sellingType && (
+                                                <div style={{ color: '#92400e', fontSize: 14 }}>
+                                                    {SELLING_TYPE_OPTIONS.find(t => t.id === sellingType)?.hi}
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div style={{ fontSize: 28, fontWeight: 700, color: '#166534' }}>
+                                            ₹{price || '0'}
+                                        </div>
+                                    </div>
+                                    {milkYield && (
+                                        <div style={{ color: '#1d4ed8', fontWeight: 600 }}>
+                                            🥛 दूध: {milkYield} लीटर/दिन
+                                        </div>
+                                    )}
+                                    {location && (
+                                        <div style={{ color: 'var(--color-text-light)', marginTop: 4 }}>📍 {location}</div>
+                                    )}
+                                    {sellerPhone && (
+                                        <div style={{ marginTop: 8, display: 'flex', gap: 8, alignItems: 'center' }}>
+                                            <span>📞 {sellerPhone}</span>
+                                            {whatsappEnabled && <span style={{ color: '#25D366' }}>💬 WhatsApp</span>}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Disclaimer */}
+                                <div style={{
+                                    padding: 16,
+                                    background: '#fef3c7',
+                                    borderRadius: 12,
+                                    marginBottom: 16,
+                                    border: '1px solid #f59e0b'
+                                }}>
+                                    <div style={{ fontWeight: 600, color: '#92400e', marginBottom: 8 }}>
+                                        ⚠️ अस्वीकरण
+                                    </div>
+                                    <p style={{ fontSize: 14, color: '#92400e', lineHeight: 1.5 }}>
+                                        यह प्लेटफॉर्म केवल खरीदार और विक्रेता को जोड़ने का काम करता है। लेन-देन, पशु की गुणवत्ता, और भुगतान की जिम्मेदारी दोनों पक्षों की है। कृपया पशु देखकर और जाँच कर ही खरीदें।
+                                    </p>
+                                </div>
+
+                                <button
+                                    className="btn btn-success"
+                                    onClick={handleSubmit}
+                                    disabled={loading || !name.trim() || !price || !sellerPhone.trim()}
+                                    style={{ fontSize: 18, padding: '18px 24px' }}
+                                >
+                                    {loading ? 'पोस्ट हो रहा है...' : '📤 विज्ञापन पोस्ट करें'}
+                                </button>
+                            </>
+                        )}
+                    </>
+                )}
+
+                {/* Step 2: Regular product form (non-electronics, non-clothes, non-books, non-vehicles, non-livestock) */}
+                {step === 2 && !isElectronics && !isClothes && !isBooks && !isVehicles && !isLivestock && (
                     <>
                         {/* Selected category badge */}
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>

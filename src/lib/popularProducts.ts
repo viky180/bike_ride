@@ -82,6 +82,12 @@ export const POPULAR_PRODUCTS: Record<ProductCategory, PopularProduct[]> = {
         { name: 'Scooter', icon: '🛵', hi: 'स्कूटर' },
         { name: 'Motorcycle', icon: '🏍️', hi: 'मोटरसाइकिल' },
         { name: 'Car', icon: '🚗', hi: 'कार' },
+    ],
+    livestock: [
+        { name: 'Cow', icon: '🐄', hi: 'गाय' },
+        { name: 'Buffalo', icon: '🐃', hi: 'भैंस' },
+        { name: 'Goat', icon: '🐐', hi: 'बकरी' },
+        { name: 'Sheep', icon: '🐑', hi: 'भेड़' },
     ]
 }
 
