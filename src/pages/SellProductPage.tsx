@@ -2688,6 +2688,13 @@ export function SellProductPage() {
                                     />
                                 </div>
 
+                                {/* Pincode with Auto-Detect */}
+                                <PincodeInput
+                                    value={pincode}
+                                    onChange={setPincode}
+                                    required
+                                />
+
                                 {/* Summary */}
                                 <div className="card mb-lg">
                                     <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
