@@ -88,6 +88,13 @@ export const POPULAR_PRODUCTS: Record<ProductCategory, PopularProduct[]> = {
         { name: 'Buffalo', icon: '🐃', hi: 'भैंस' },
         { name: 'Goat', icon: '🐐', hi: 'बकरी' },
         { name: 'Sheep', icon: '🐑', hi: 'भेड़' },
+    ],
+    pharmacy: [
+        { name: 'First Aid Kit', icon: '⛑️', hi: 'प्राथमिक चिकित्सा किट' },
+        { name: 'Pain Relief (Balms/Spray)', icon: '🧴', hi: 'दर्द निवारक' },
+        { name: 'Ayurvedic Medicine', icon: '🌿', hi: 'आयुर्वेदिक दवा' },
+        { name: 'Surgical Items', icon: '🩹', hi: 'सर्जिकल आइटम' },
+        { name: 'Baby Care', icon: '👶', hi: 'शिशु देखभाल' },
     ]
 }
 

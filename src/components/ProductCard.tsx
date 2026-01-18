@@ -2,8 +2,6 @@ import { useApp } from '../context/AppContext'
 import { useNavigate } from 'react-router-dom'
 import { Product } from '../lib/supabase'
 import { getCategory } from '../lib/categories'
-import { formatDistanceToNow } from 'date-fns'
-import { hi } from 'date-fns/locale'
 
 interface ProductCardProps {
     product: Product
@@ -18,8 +16,6 @@ interface ProductCardProps {
 export function ProductCard({
     product,
     onCall,
-    onWhatsApp,
-    showActions = true,
     onMarkSold,
     onDelete,
     clickable = true
@@ -28,14 +24,14 @@ export function ProductCard({
     const navigate = useNavigate()
     const category = getCategory(product.category)
 
-    const timeAgo = formatDistanceToNow(new Date(product.created_at), {
-        addSuffix: true,
-        locale: language === 'hi' ? hi : undefined
-    })
-
-    // Get first image from array (or undefined)
+    // Get first image from array
     const firstImage = product.image_urls?.length > 0 ? product.image_urls[0] : null
-    const imageCount = product.image_urls?.length || 0
+
+    // Determine condition based on category (agriculture = fresh, others = could be used)
+    const isAgriCategory = ['vegetables', 'fruits', 'grains', 'dairy', 'livestock'].includes(product.category)
+    const conditionLabel = isAgriCategory
+        ? (language === 'hi' ? 'ताज़ा' : 'Fresh')
+        : (language === 'hi' ? 'नया' : 'New')
 
     const handleCardClick = () => {
         if (clickable) {
@@ -51,16 +47,7 @@ export function ProductCard({
         onCall?.()
     }
 
-    const handleWhatsApp = (e: React.MouseEvent) => {
-        e.stopPropagation()
-        if (product.seller?.phone) {
-            const message = language === 'hi'
-                ? `नमस्ते! मुझे आपका ${product.name} (${product.quantity}) चाहिए।`
-                : `Hi! I'm interested in your ${product.name} (${product.quantity}).`
-            window.open(`https://wa.me/91${product.seller.phone}?text=${encodeURIComponent(message)}`, '_blank')
-        }
-        onWhatsApp?.()
-    }
+    // Note: WhatsApp is handled on the detail page now
 
     const handleMarkSold = (e: React.MouseEvent) => {
         e.stopPropagation()
@@ -74,111 +61,199 @@ export function ProductCard({
 
     return (
         <div
-            className={`product-card ${clickable ? 'clickable' : ''}`}
             onClick={handleCardClick}
+            style={{
+                background: '#ffffff',
+                borderRadius: 10,
+                overflow: 'hidden',
+                boxShadow: '0 1px 4px rgba(0, 0, 0, 0.08)',
+                cursor: clickable ? 'pointer' : 'default',
+                transition: 'transform 0.2s, box-shadow 0.2s',
+            }}
+            className="product-card-modern"
         >
-            {/* Category & Name */}
-            <div className="product-header">
+            {/* Image Section */}
+            <div style={{
+                position: 'relative',
+                aspectRatio: '1/1',
+                background: '#f8fafc',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                overflow: 'hidden'
+            }}>
                 {firstImage ? (
-                    <div className="product-image-container">
-                        <img
-                            src={firstImage}
-                            alt={product.name}
-                            className="product-image"
-                            loading="lazy"
-                        />
-                        {imageCount > 1 && (
-                            <span className="product-image-count">+{imageCount - 1}</span>
-                        )}
-                    </div>
+                    <img
+                        src={firstImage}
+                        alt={product.name}
+                        style={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover'
+                        }}
+                        loading="lazy"
+                    />
                 ) : (
-                    <span className="product-icon" style={{ background: `${category?.color}20` }}>
+                    <span style={{ fontSize: 32, opacity: 0.5 }}>
                         {category?.icon || '📦'}
                     </span>
                 )}
-                <div className="product-info">
-                    <div className="product-name">{product.name}</div>
-                    <div className="product-category">
-                        {language === 'hi' ? category?.hi : category?.en}
-                    </div>
-                </div>
+
+                {/* Condition Badge */}
+                <span style={{
+                    position: 'absolute',
+                    top: 4,
+                    left: 4,
+                    padding: '2px 6px',
+                    borderRadius: 8,
+                    background: isAgriCategory ? '#dcfce7' : '#dbeafe',
+                    color: isAgriCategory ? '#16a34a' : '#1d4ed8',
+                    fontSize: 9,
+                    fontWeight: 600,
+                    letterSpacing: 0.2
+                }}>
+                    {conditionLabel}
+                </span>
+
+                {/* Sold badge */}
                 {product.status === 'sold' && (
-                    <span className="badge badge-pending">{language === 'hi' ? 'बिक गया' : 'Sold'}</span>
-                )}
-            </div>
-
-            {/* Quantity & Price */}
-            <div className="product-details">
-                <div className="product-quantity">
-                    <span className="icon">📦</span>
-                    <span>{product.quantity}</span>
-                </div>
-                <div className="product-price">
-                    ₹{product.price}
-                </div>
-            </div>
-
-            {/* Seller info */}
-            <div className="product-seller">
-                <div className="seller-info">
-                    <span className="icon">👤</span>
-                    <span>{product.seller?.name || (language === 'hi' ? 'विक्रेता' : 'Seller')}</span>
-                </div>
-                {product.location && (
-                    <div className="seller-location">
-                        <span className="icon">📍</span>
-                        <span>{product.location}</span>
+                    <div style={{
+                        position: 'absolute',
+                        inset: 0,
+                        background: 'rgba(0,0,0,0.6)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                    }}>
+                        <span style={{
+                            padding: '8px 16px',
+                            background: '#fef2f2',
+                            color: '#dc2626',
+                            borderRadius: 8,
+                            fontWeight: 700,
+                            fontSize: 14
+                        }}>
+                            {language === 'hi' ? 'बिक गया' : 'SOLD'}
+                        </span>
                     </div>
                 )}
-                <div className="product-time">{timeAgo}</div>
             </div>
 
-            {/* Tap hint for images */}
-            {imageCount > 0 && clickable && (
-                <div className="product-tap-hint">
-                    {language === 'hi' ? '👆 फोटो देखने के लिए टैप करें' : '👆 Tap to view photos'}
-                </div>
-            )}
+            {/* Content Section */}
+            <div style={{ padding: 8 }}>
+                {/* Product Name */}
+                <h3 style={{
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: '#1f2937',
+                    marginBottom: 2,
+                    lineHeight: 1.2,
+                    display: '-webkit-box',
+                    WebkitLineClamp: 1,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden'
+                }}>
+                    {product.name}
+                </h3>
 
-            {/* Action buttons */}
-            {showActions && product.status === 'available' && product.seller?.phone && (
-                <div className="product-actions">
+                {/* Price or Discount for pharmacy */}
+                {product.category === 'pharmacy' && product.discount_percent ? (
+                    <span style={{
+                        fontSize: 11,
+                        fontWeight: 700,
+                        color: '#dc2626',
+                        background: '#fef2f2',
+                        padding: '1px 4px',
+                        borderRadius: 4,
+                    }}>
+                        {product.discount_percent}% OFF
+                    </span>
+                ) : (
+                    <span style={{
+                        fontSize: 13,
+                        fontWeight: 700,
+                        color: '#059669',
+                    }}>
+                        ₹{product.price}
+                    </span>
+                )}
+
+                {/* Call button for pharmacy */}
+                {product.category === 'pharmacy' && product.seller?.phone && product.status === 'available' && (
                     <button
-                        className="btn btn-success"
                         onClick={handleCall}
-                        style={{ flex: 1 }}
+                        style={{
+                            width: '100%',
+                            marginTop: 4,
+                            padding: '4px 8px',
+                            borderRadius: 6,
+                            border: 'none',
+                            background: '#22c55e',
+                            color: 'white',
+                            fontSize: 10,
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: 3
+                        }}
                     >
-                        📞 {t('call')}
+                        📞 {language === 'hi' ? 'कॉल करें' : 'Call'}
                     </button>
-                    <button
-                        className="btn btn-whatsapp"
-                        onClick={handleWhatsApp}
-                        style={{ flex: 1 }}
-                    >
-                        💬 WhatsApp
-                    </button>
-                </div>
-            )}
+                )}
+            </div>
 
             {/* Owner actions (for My Products page) */}
             {onMarkSold && onDelete && product.status === 'available' && (
-                <div className="product-actions">
+                <div style={{ display: 'flex', gap: 8 }}>
                     <button
-                        className="btn btn-outline"
                         onClick={handleMarkSold}
-                        style={{ flex: 1 }}
+                        style={{
+                            flex: 1,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: 6,
+                            padding: '10px 12px',
+                            borderRadius: 10,
+                            border: '2px solid #e2e8f0',
+                            background: 'white',
+                            color: '#64748b',
+                            fontSize: 13,
+                            fontWeight: 600,
+                            cursor: 'pointer'
+                        }}
                     >
                         ✓ {t('mark_sold')}
                     </button>
                     <button
-                        className="btn btn-danger"
                         onClick={handleDelete}
-                        style={{ flex: 0, padding: '12px 16px' }}
+                        style={{
+                            padding: '10px 14px',
+                            borderRadius: 10,
+                            border: 'none',
+                            background: '#fef2f2',
+                            color: '#dc2626',
+                            fontSize: 13,
+                            cursor: 'pointer'
+                        }}
                     >
                         🗑️
                     </button>
                 </div>
             )}
+
+            {/* Hover effect CSS */}
+            <style>{`
+                .product-card-modern:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1) !important;
+                }
+                .product-card-modern:active {
+                    transform: scale(0.98);
+                }
+            `}</style>
         </div>
     )
 }

@@ -182,6 +182,49 @@ export function ProductDetailPage() {
                     </div>
                 </div>
 
+                {/* Pharmacy-specific: Discount Badge */}
+                {product.category === 'pharmacy' && product.discount_percent && (
+                    <div className="card mb-lg" style={{ background: '#fef2f2', borderColor: '#fecaca' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                            <span style={{ fontSize: 32 }}>🏷️</span>
+                            <div>
+                                <div style={{ fontSize: 24, fontWeight: 700, color: '#dc2626' }}>
+                                    {product.discount_percent} {language === 'hi' ? 'छूट' : 'OFF'}
+                                </div>
+                                <div style={{ color: '#b91c1c', fontSize: 14 }}>
+                                    {language === 'hi' ? 'सभी दवाइयों पर' : 'On all medicines'}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Pharmacy-specific: Medicines List */}
+                {product.category === 'pharmacy' && product.medicines && product.medicines.length > 0 && (
+                    <div className="card mb-lg">
+                        <div className="section-title" style={{ marginBottom: 12 }}>
+                            💊 {language === 'hi' ? 'उपलब्ध दवाइयाँ' : 'Available Medicines'} ({product.medicines.length})
+                        </div>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                            {product.medicines.map((medicine, index) => (
+                                <span
+                                    key={index}
+                                    style={{
+                                        padding: '6px 12px',
+                                        background: '#dbeafe',
+                                        color: '#1d4ed8',
+                                        borderRadius: 16,
+                                        fontSize: 13,
+                                        fontWeight: 500
+                                    }}
+                                >
+                                    {medicine}
+                                </span>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
                 {/* Seller Info */}
                 <div className="card mb-lg">
                     <div className="section-title" style={{ marginBottom: 12 }}>

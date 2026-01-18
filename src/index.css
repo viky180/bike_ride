@@ -1297,9 +1297,9 @@ body {
 
 /* Product grid */
 .product-grid {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-md);
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
 }
 
 /* Floating action button */

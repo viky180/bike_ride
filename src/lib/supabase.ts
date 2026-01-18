@@ -50,7 +50,7 @@ export interface Booking {
 }
 
 // Product categories
-export type ProductCategory = 'vegetables' | 'fruits' | 'grains' | 'dairy' | 'electronics' | 'clothes' | 'furniture' | 'books' | 'stationery' | 'vehicles' | 'livestock' | 'other'
+export type ProductCategory = 'vegetables' | 'fruits' | 'grains' | 'dairy' | 'electronics' | 'clothes' | 'furniture' | 'books' | 'stationery' | 'vehicles' | 'livestock' | 'pharmacy' | 'other'
 
 export interface Product {
     id: string
@@ -64,6 +64,9 @@ export interface Product {
     image_urls: string[]
     status: 'available' | 'sold' | 'expired'
     created_at: string
+    // Pharmacy-specific fields
+    medicines?: string[]
+    discount_percent?: string
     // Joined fields
     seller?: User
 }
