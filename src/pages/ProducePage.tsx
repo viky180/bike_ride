@@ -19,7 +19,6 @@ export function ProducePage() {
 
     // Pincode filter state
     const [filterPincode, setFilterPincode] = useState(getStoredPincode() || '')
-    const [includeNearby, setIncludeNearby] = useState(true)
 
     // Geolocation for auto-detect
     const { pincode: detectedPincode, loading: detectingLocation, error: locationError, detectLocation } = useGeolocation()
@@ -64,6 +63,7 @@ export function ProducePage() {
     }
 
     // Filter products by category and pincode
+    // Shows exact matches first, then nearby matches (same first 3 digits)
     const getFilteredProducts = () => {
         let filtered = products
 
@@ -72,18 +72,21 @@ export function ProducePage() {
             filtered = filtered.filter(p => p.category === selectedCategory)
         }
 
-        // Filter by pincode
+        // Filter by pincode - include exact + nearby, sorted with exact first
         if (filterPincode.length === 6) {
+            const pincodePrefix = filterPincode.slice(0, 3)
+
+            // Get all products matching the pincode area (first 3 digits)
             filtered = filtered.filter(p => {
                 if (!p.pincode) return false
+                return p.pincode.slice(0, 3) === pincodePrefix
+            })
 
-                if (includeNearby) {
-                    // Match first 3 digits (same district/area)
-                    return p.pincode.slice(0, 3) === filterPincode.slice(0, 3)
-                } else {
-                    // Exact match only
-                    return p.pincode === filterPincode
-                }
+            // Sort: exact matches first, then nearby
+            filtered.sort((a, b) => {
+                const aExact = a.pincode === filterPincode ? 0 : 1
+                const bExact = b.pincode === filterPincode ? 0 : 1
+                return aExact - bExact
             })
         }
 
@@ -129,40 +132,46 @@ export function ProducePage() {
                             </span>
                         </div>
                         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                            <input
-                                type="text"
-                                value={filterPincode}
-                                onChange={(e) => {
-                                    const val = e.target.value.replace(/\D/g, '').slice(0, 6)
-                                    setFilterPincode(val)
-                                }}
-                                placeholder={language === 'hi' ? 'पिनकोड डालें' : 'Enter pincode'}
-                                maxLength={6}
-                                style={{
-                                    flex: 1,
-                                    padding: '12px 16px',
-                                    fontSize: 16,
-                                    borderRadius: 12,
-                                    border: filterPincode.length === 6 ? '2px solid #22c55e' : '2px solid #cbd5e1',
-                                    background: 'white'
-                                }}
-                            />
-                            {filterPincode && (
-                                <button
-                                    onClick={handleClearPincode}
-                                    style={{
-                                        padding: '12px 16px',
-                                        borderRadius: 12,
-                                        border: 'none',
-                                        background: '#fee2e2',
-                                        color: '#dc2626',
-                                        fontWeight: 600,
-                                        cursor: 'pointer'
+                            {/* Input wrapper with clear button */}
+                            <div style={{ flex: 1, position: 'relative', display: 'flex', alignItems: 'center' }}>
+                                <input
+                                    type="text"
+                                    value={filterPincode}
+                                    onChange={(e) => {
+                                        const val = e.target.value.replace(/\D/g, '').slice(0, 6)
+                                        setFilterPincode(val)
                                     }}
-                                >
-                                    ✕
-                                </button>
-                            )}
+                                    placeholder={language === 'hi' ? 'पिनकोड डालें' : 'Enter pincode'}
+                                    maxLength={6}
+                                    style={{
+                                        width: '100%',
+                                        padding: filterPincode ? '12px 44px 12px 16px' : '12px 16px',
+                                        fontSize: 16,
+                                        borderRadius: 12,
+                                        border: filterPincode.length === 6 ? '2px solid #22c55e' : '2px solid #cbd5e1',
+                                        background: 'white'
+                                    }}
+                                />
+                                {filterPincode && (
+                                    <button
+                                        onClick={handleClearPincode}
+                                        style={{
+                                            position: 'absolute',
+                                            right: 8,
+                                            padding: '6px 10px',
+                                            borderRadius: 8,
+                                            border: 'none',
+                                            background: '#fee2e2',
+                                            color: '#dc2626',
+                                            fontWeight: 600,
+                                            cursor: 'pointer',
+                                            fontSize: 12
+                                        }}
+                                    >
+                                        ✕
+                                    </button>
+                                )}
+                            </div>
                             <button
                                 onClick={detectLocation}
                                 disabled={detectingLocation}
@@ -198,46 +207,10 @@ export function ProducePage() {
                             </button>
                         </div>
                         {filterPincode.length === 6 && (
-                            <div style={{ marginTop: 12, display: 'flex', gap: 8 }}>
-                                <button
-                                    onClick={() => setIncludeNearby(false)}
-                                    style={{
-                                        flex: 1,
-                                        padding: '10px',
-                                        borderRadius: 8,
-                                        border: 'none',
-                                        background: !includeNearby ? '#0ea5e9' : '#e2e8f0',
-                                        color: !includeNearby ? 'white' : '#64748b',
-                                        fontWeight: 600,
-                                        cursor: 'pointer',
-                                        fontSize: 14
-                                    }}
-                                >
-                                    🎯 {language === 'hi' ? 'सटीक' : 'Exact'}
-                                </button>
-                                <button
-                                    onClick={() => setIncludeNearby(true)}
-                                    style={{
-                                        flex: 1,
-                                        padding: '10px',
-                                        borderRadius: 8,
-                                        border: 'none',
-                                        background: includeNearby ? '#0ea5e9' : '#e2e8f0',
-                                        color: includeNearby ? 'white' : '#64748b',
-                                        fontWeight: 600,
-                                        cursor: 'pointer',
-                                        fontSize: 14
-                                    }}
-                                >
-                                    📍 {language === 'hi' ? 'आस-पास' : 'Nearby'}
-                                </button>
-                            </div>
-                        )}
-                        {filterPincode.length === 6 && (
                             <small style={{ display: 'block', marginTop: 8, color: '#64748b' }}>
-                                {includeNearby
-                                    ? (language === 'hi' ? `${filterPincode.slice(0, 3)}xxx एरिया से आइटम दिखाएँगे` : `Showing items from ${filterPincode.slice(0, 3)}xxx area`)
-                                    : (language === 'hi' ? `केवल ${filterPincode} से आइटम दिखाएँगे` : `Showing items from ${filterPincode} only`)}
+                                {language === 'hi'
+                                    ? `✨ पहले ${filterPincode} से, फिर ${filterPincode.slice(0, 3)}xxx एरिया से`
+                                    : `✨ First from ${filterPincode}, then from ${filterPincode.slice(0, 3)}xxx area`}
                             </small>
                         )}
                         {locationError && (
@@ -362,37 +335,19 @@ export function ProducePage() {
                         }}
                     />
                     {filterPincode.length === 6 && (
-                        <>
-                            <button
-                                onClick={() => setIncludeNearby(!includeNearby)}
-                                style={{
-                                    padding: '8px 12px',
-                                    borderRadius: 8,
-                                    border: 'none',
-                                    background: includeNearby ? '#dbeafe' : '#f1f5f9',
-                                    color: includeNearby ? '#1d4ed8' : '#64748b',
-                                    fontSize: 12,
-                                    fontWeight: 600,
-                                    cursor: 'pointer',
-                                    whiteSpace: 'nowrap'
-                                }}
-                            >
-                                {includeNearby ? '📍 Nearby' : '🎯 Exact'}
-                            </button>
-                            <button
-                                onClick={handleClearPincode}
-                                style={{
-                                    padding: '8px',
-                                    borderRadius: 8,
-                                    border: 'none',
-                                    background: '#fee2e2',
-                                    color: '#dc2626',
-                                    cursor: 'pointer'
-                                }}
-                            >
-                                ✕
-                            </button>
-                        </>
+                        <button
+                            onClick={handleClearPincode}
+                            style={{
+                                padding: '8px',
+                                borderRadius: 8,
+                                border: 'none',
+                                background: '#fee2e2',
+                                color: '#dc2626',
+                                cursor: 'pointer'
+                            }}
+                        >
+                            ✕
+                        </button>
                     )}
                     <button
                         onClick={detectLocation}

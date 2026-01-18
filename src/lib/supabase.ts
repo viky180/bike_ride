@@ -58,7 +58,7 @@ export interface Product {
     category: ProductCategory
     name: string
     quantity: string
-    price: number
+    price: string  // Changed to string to allow text like "₹50/kg", "₹100/quintal"
     location: string | null
     pincode: string | null
     image_urls: string[]

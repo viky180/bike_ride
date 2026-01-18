@@ -4,13 +4,14 @@ import { Header } from '../components/Header'
 import { BottomNav } from '../components/BottomNav'
 
 export function HomePage() {
-    const { t, user, language, mode, setMode } = useApp()
+    const { t, user, language, mode /* setMode - RIDE SHARING DEACTIVATED */ } = useApp()
 
-    const handleSwitchMode = () => {
-        // Toggle to the other mode
-        const newMode = mode === 'ride' ? 'produce' : 'ride'
-        setMode(newMode)
-    }
+    // RIDE SHARING DEACTIVATED: handleSwitchMode is unused while ride mode is disabled
+    // const handleSwitchMode = () => {
+    //     // Toggle to the other mode
+    //     const newMode = mode === 'ride' ? 'produce' : 'ride'
+    //     setMode(newMode)
+    // }
 
     // Mode-specific content
     const isRideMode = mode === 'ride'
@@ -23,14 +24,14 @@ export function HomePage() {
         <div className="app">
             <Header title={headerTitle} />
 
-            {/* Switch Mode Button */}
-            <button
+            {/* Switch Mode Button - RIDE SHARING DEACTIVATED: Hidden until reactivated */}
+            {/* <button
                 className="switch-mode-btn"
                 onClick={handleSwitchMode}
                 title={language === 'hi' ? 'मोड बदलें' : 'Switch Mode'}
             >
                 🔄
-            </button>
+            </button> */}
 
             <div className="page">
                 {/* Welcome message */}

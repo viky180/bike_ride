@@ -1,12 +1,29 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192">
-  <rect width="192" height="192" rx="24" fill="#10b981"/>
-  <g fill="#fff">
-    <!-- Junction/crossroads symbol -->
-    <rect x="88" y="32" width="16" height="128" rx="4"/>
-    <rect x="32" y="88" width="128" height="16" rx="4"/>
-    <!-- Wheat/leaf accents -->
-    <circle cx="96" cy="96" r="12" fill="#f0fdf4"/>
-    <ellipse cx="140" cy="52" rx="8" ry="16" transform="rotate(45 140 52)" fill="#86efac"/>
-    <ellipse cx="52" cy="140" rx="8" ry="16" transform="rotate(45 52 140)" fill="#86efac"/>
-  </g>
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="QuickHaat App Icon">
+
+  <!-- Background -->
+  <rect x="0" y="0" width="512" height="512" rx="96" fill="#0F766E"></rect>
+
+  <!-- Marketplace circle -->
+  <circle cx="256" cy="256" r="140" fill="#FFFFFF"></circle>
+
+  <!-- Interlinked arrows (connection + speed) -->
+  <path d="
+    M220 210
+    L300 210
+    L280 190
+    M300 210
+    L280 230
+    " fill="none" stroke="#0F766E" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"></path>
+
+  <path d="
+    M292 302
+    L212 302
+    L232 322
+    M212 302
+    L232 282
+    " fill="none" stroke="#0F766E" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"></path>
+
+  <!-- Central dot (market hub) -->
+  <circle cx="256" cy="256" r="14" fill="#0F766E"></circle>
+
 </svg>

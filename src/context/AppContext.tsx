@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 import { Language, getStoredLanguage, setStoredLanguage, t, TranslationKey } from '../lib/i18n'
-import { StoredUser, getStoredUser, setStoredUser as saveUser, AppMode, getStoredMode, setStoredMode } from '../lib/storage'
+import { StoredUser, getStoredUser, setStoredUser as saveUser, AppMode, /* getStoredMode, */ setStoredMode } from '../lib/storage'
 
 interface AppContextType {
     // Language
@@ -28,7 +28,8 @@ const AppContext = createContext<AppContextType | null>(null)
 export function AppProvider({ children }: { children: ReactNode }) {
     const [language, setLanguageState] = useState<Language>(getStoredLanguage())
     const [user, setUserState] = useState<StoredUser | null>(getStoredUser())
-    const [mode, setModeState] = useState<AppMode | null>(getStoredMode())
+    // RIDE SHARING DEACTIVATED: Force 'produce' mode. To reactivate, restore: useState<AppMode | null>(getStoredMode())
+    const [mode, setModeState] = useState<AppMode | null>('produce')
     const [isOnline, setIsOnline] = useState(navigator.onLine)
     const [toast, setToast] = useState<string | null>(null)
 

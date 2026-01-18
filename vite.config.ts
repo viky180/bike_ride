@@ -10,7 +10,7 @@ export default defineConfig({
             devOptions: {
                 enabled: true
             },
-            includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'pwa-icon.svg'],
+            includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'pwa-icon.svg', 'quickhaat-192.png', 'quickhaat-512.png'],
             manifest: {
                 name: 'ग्राम जंक्शन - Gram Junction',
                 short_name: 'जंक्शन',
@@ -22,16 +22,28 @@ export default defineConfig({
                 start_url: '/',
                 icons: [
                     {
-                        src: 'pwa-icon.svg',
-                        sizes: 'any',
-                        type: 'image/svg+xml',
+                        src: 'quickhaat-192.png',
+                        sizes: '192x192',
+                        type: 'image/png',
                         purpose: 'any'
+                    },
+                    {
+                        src: 'quickhaat-512.png',
+                        sizes: '512x512',
+                        type: 'image/png',
+                        purpose: 'any'
+                    },
+                    {
+                        src: 'quickhaat-512.png',
+                        sizes: '512x512',
+                        type: 'image/png',
+                        purpose: 'maskable'
                     },
                     {
                         src: 'pwa-icon.svg',
                         sizes: 'any',
                         type: 'image/svg+xml',
-                        purpose: 'maskable'
+                        purpose: 'any'
                     }
                 ]
             },

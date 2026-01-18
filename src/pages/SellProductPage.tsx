@@ -442,7 +442,7 @@ export function SellProductPage() {
                     category,
                     name: productName,
                     quantity: productQuantity,
-                    price: parseInt(price),
+                    price: price,  // Store as text (e.g., "₹50/kg", "₹100/quintal")
                     location: location.trim() || null,
                     pincode: pincode.trim() || null,
                     image_urls: imageUrls,
@@ -2654,11 +2654,11 @@ export function SellProductPage() {
                                 <div className="form-group">
                                     <label className="form-label">{t('enter_price')}</label>
                                     <input
-                                        type="number"
+                                        type="text"
                                         className="form-input"
                                         value={price}
                                         onChange={(e) => setPrice(e.target.value)}
-                                        placeholder="₹"
+                                        placeholder={language === 'hi' ? '₹50/किलो, ₹500/क्विंटल...' : '₹50/kg, ₹500/quintal...'}
                                         style={{
                                             width: '100%',
                                             padding: '16px',
@@ -2704,7 +2704,7 @@ export function SellProductPage() {
                                             <div style={{ color: 'var(--color-text-light)' }}>{quantity || '—'}</div>
                                         </div>
                                         <div style={{ marginLeft: 'auto', fontSize: 24, fontWeight: 700, color: 'var(--color-primary)' }}>
-                                            ₹{price || '0'}
+                                            {price || '₹0'}
                                         </div>
                                     </div>
                                     {location && (
