@@ -12,6 +12,7 @@ import {
     VehiclesForm,
     LivestockForm,
     PharmacyForm,
+    JobForm,
     RegularProductForm,
 } from '../components/sell'
 import type {
@@ -21,6 +22,7 @@ import type {
     VehiclesFormData,
     LivestockFormData,
     PharmacyFormData,
+    JobFormData,
     RegularProductFormData,
 } from '../components/sell'
 
@@ -332,6 +334,42 @@ export function SellProductPage() {
         }
     }
 
+    // Handle Job form submission (Recruiter)
+    const handleJobSubmit = async (data: JobFormData) => {
+        if (!user) return
+        setLoading(true)
+        try {
+            // Build job details
+            const details: string[] = []
+            details.push(`💰 ${data.salary}`)
+            if (data.jobLocation) details.push(`📍 ${data.jobLocation}`)
+            if (data.allIndia) {
+                details.push('🇮🇳 All India')
+            } else if (data.candidatesFrom.length > 0) {
+                details.push(`From: ${data.candidatesFrom.join(', ')}`)
+            }
+            details.push(`📞 ${data.sellerPhone}${data.whatsappEnabled ? ' (WhatsApp)' : ''}`)
+
+            await insertProduct({
+                name: `💼 Hiring: ${data.jobType}`,
+                quantity: details.join(' | '),
+                category: 'jobs',
+                price: data.salary,
+                location: data.jobLocation,
+                pincode: '',
+                imageUrls: []
+            })
+
+            showToast(language === 'hi' ? '✅ नौकरी पोस्ट हो गई!' : '✅ Job posted!')
+            navigate('/my-products')
+        } catch (error: any) {
+            console.error('Error posting job:', error)
+            showToast(language === 'hi' ? `❌ त्रुटि: ${error?.message}` : `❌ Error: ${error?.message}`)
+        } finally {
+            setLoading(false)
+        }
+    }
+
     // Handle Regular product form submission
     const handleRegularSubmit = async (data: RegularProductFormData) => {
         if (!user || !category) return
@@ -365,6 +403,7 @@ export function SellProductPage() {
     const isVehicles = category === 'vehicles'
     const isLivestock = category === 'livestock'
     const isPharmacy = category === 'pharmacy'
+    const isJobs = category === 'jobs'
 
     return (
         <div className="app">
@@ -401,7 +440,11 @@ export function SellProductPage() {
                     <PharmacyForm onBack={handleBack} onSubmit={handlePharmacySubmit} loading={loading} />
                 )}
 
-                {step === 2 && !isElectronics && !isClothes && !isBooks && !isVehicles && !isLivestock && !isPharmacy && category && (
+                {step === 2 && isJobs && (
+                    <JobForm onBack={handleBack} onSubmit={handleJobSubmit} loading={loading} />
+                )}
+
+                {step === 2 && !isElectronics && !isClothes && !isBooks && !isVehicles && !isLivestock && !isPharmacy && !isJobs && category && (
                     <RegularProductForm category={category} onBack={handleBack} onSubmit={handleRegularSubmit} loading={loading} />
                 )}
 

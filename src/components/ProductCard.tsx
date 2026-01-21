@@ -2,6 +2,7 @@ import { useApp } from '../context/AppContext'
 import { useNavigate } from 'react-router-dom'
 import { Product } from '../lib/supabase'
 import { getCategory } from '../lib/categories'
+import { getDefaultImageForProduct } from '../lib/defaultImages'
 
 interface ProductCardProps {
     product: Product
@@ -24,8 +25,10 @@ export function ProductCard({
     const navigate = useNavigate()
     const category = getCategory(product.category)
 
-    // Get first image from array
-    const firstImage = product.image_urls?.length > 0 ? product.image_urls[0] : null
+    // Get first image from array, fallback to default sub-category or category image
+    const productImage = product.image_urls?.length > 0 ? product.image_urls[0] : null
+    const defaultImage = getDefaultImageForProduct(product.category, product.name)
+    const firstImage = productImage || defaultImage
 
     // Determine condition based on category (agriculture = fresh, others = could be used)
     const isAgriCategory = ['vegetables', 'fruits', 'grains', 'dairy', 'livestock'].includes(product.category)
@@ -178,8 +181,8 @@ export function ProductCard({
                     </span>
                 )}
 
-                {/* Call button for pharmacy */}
-                {product.category === 'pharmacy' && product.seller?.phone && product.status === 'available' && (
+                {/* Call button for all products */}
+                {product.seller?.phone && product.status === 'available' && (
                     <button
                         onClick={handleCall}
                         style={{

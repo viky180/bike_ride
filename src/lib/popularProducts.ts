@@ -95,6 +95,18 @@ export const POPULAR_PRODUCTS: Record<ProductCategory, PopularProduct[]> = {
         { name: 'Ayurvedic Medicine', icon: '🌿', hi: 'आयुर्वेदिक दवा' },
         { name: 'Surgical Items', icon: '🩹', hi: 'सर्जिकल आइटम' },
         { name: 'Baby Care', icon: '👶', hi: 'शिशु देखभाल' },
+    ],
+    jobs: [
+        { name: 'Driver', icon: '🚗', hi: 'ड्राइवर' },
+        { name: 'Cook', icon: '👨‍🍳', hi: 'रसोइया' },
+        { name: 'Security Guard', icon: '💂', hi: 'सुरक्षा गार्ड' },
+        { name: 'Helper', icon: '🤝', hi: 'हेल्पर' },
+        { name: 'Cleaner', icon: '🧹', hi: 'सफाईकर्मी' },
+        { name: 'Electrician', icon: '⚡', hi: 'इलेक्ट्रीशियन' },
+        { name: 'Plumber', icon: '🔧', hi: 'प्लंबर' },
+        { name: 'Teacher', icon: '👩‍🏫', hi: 'शिक्षक' },
+        { name: 'Salesman', icon: '🏪', hi: 'सेल्समैन' },
+        { name: 'Labour', icon: '👷', hi: 'मजदूर' },
     ]
 }
 

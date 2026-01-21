@@ -4,14 +4,16 @@ import { useApp } from '../context/AppContext'
 import { Header } from '../components/Header'
 import { BottomNav } from '../components/BottomNav'
 import { ProductCard } from '../components/ProductCard'
-import { supabase, Product, ProductCategory } from '../lib/supabase'
-import { CATEGORIES } from '../lib/categories'
+import { supabase, Product, ProductCategory, ProductRequest } from '../lib/supabase'
+import { HorizontalCategorySelector } from '../components/HorizontalCategorySelector'
 import { getStoredPincode } from '../lib/storage'
+import { getCategory } from '../lib/categories'
 
 export function HomePage() {
     const { t, user, language, mode } = useApp()
 
     const [products, setProducts] = useState<Product[]>([])
+    const [requests, setRequests] = useState<ProductRequest[]>([])
     const [loading, setLoading] = useState(true)
     const [selectedCategory, setSelectedCategory] = useState<ProductCategory | 'all'>('all')
 
@@ -22,10 +24,11 @@ export function HomePage() {
         ? (language === 'hi' ? '🏍️ बाइक सवारी' : '🏍️ Bike Rides')
         : (language === 'hi' ? '🛒 स्थानीय बाज़ार' : '🛒 Local Market')
 
-    // Fetch products on mount
+    // Fetch products and requests on mount
     useEffect(() => {
         if (!isRideMode) {
             fetchProducts()
+            fetchRequests()
         }
     }, [isRideMode])
 
@@ -47,6 +50,26 @@ export function HomePage() {
             console.error('Error fetching products:', error)
         } finally {
             setLoading(false)
+        }
+    }
+
+    const fetchRequests = async () => {
+        try {
+            const { data, error } = await supabase
+                .from('product_requests')
+                .select(`
+                    *,
+                    buyer:users!buyer_id(id, name, phone)
+                `)
+                .eq('status', 'active')
+                .gt('expires_at', new Date().toISOString())
+                .order('created_at', { ascending: false })
+                .limit(10)
+
+            if (error) throw error
+            setRequests((data || []) as ProductRequest[])
+        } catch (error) {
+            console.error('Error fetching requests:', error)
         }
     }
 
@@ -131,7 +154,14 @@ export function HomePage() {
         <div className="app">
             <Header title={headerTitle} />
 
-            <div className="page">
+            {/* Horizontal Category Selector (sticky) */}
+            <HorizontalCategorySelector
+                selectedCategory={selectedCategory}
+                onSelectCategory={setSelectedCategory}
+                language={language}
+            />
+
+            <div className="page" style={{ paddingTop: 0 }}>
                 {/* Welcome message */}
                 <div style={{ textAlign: 'center', marginBottom: 16 }}>
                     <h1 style={{ fontSize: 20, marginBottom: 4 }}>
@@ -142,63 +172,72 @@ export function HomePage() {
                     </p>
                 </div>
 
-                {/* Horizontal scrollable categories */}
-                <div className="category-scroll" style={{
-                    display: 'flex',
-                    gap: 8,
-                    overflowX: 'auto',
-                    paddingBottom: 12,
-                    marginBottom: 16,
-                    WebkitOverflowScrolling: 'touch'
-                }}>
-                    <button
-                        className={`category-pill ${selectedCategory === 'all' ? 'selected' : ''}`}
-                        onClick={() => setSelectedCategory('all')}
-                        style={{
+                {/* Requests horizontal scroll section */}
+                {requests.length > 0 && (
+                    <div style={{ marginBottom: 20 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                            <h3 style={{ fontSize: 16, fontWeight: 600, color: '#f59e0b', display: 'flex', alignItems: 'center', gap: 6 }}>
+                                📢 {language === 'hi' ? 'लोग ढूंढ रहे हैं' : 'People are looking for'}
+                            </h3>
+                            <Link
+                                to="/demand"
+                                style={{ fontSize: 13, color: '#3b82f6', textDecoration: 'none', fontWeight: 500 }}
+                            >
+                                {language === 'hi' ? 'सभी देखें →' : 'View all →'}
+                            </Link>
+                        </div>
+                        <div style={{
                             display: 'flex',
-                            alignItems: 'center',
-                            gap: 4,
-                            padding: '8px 14px',
-                            borderRadius: 20,
-                            border: selectedCategory === 'all' ? '2px solid #10b981' : '1px solid #e2e8f0',
-                            background: selectedCategory === 'all' ? '#dcfce7' : 'white',
-                            fontSize: 13,
-                            fontWeight: 600,
-                            cursor: 'pointer',
-                            whiteSpace: 'nowrap',
-                            flexShrink: 0,
-                            color: selectedCategory === 'all' ? '#059669' : '#64748b'
-                        }}
-                    >
-                        <span>🔍</span>
-                        <span>{language === 'hi' ? 'सभी' : 'All'}</span>
-                    </button>
-                    {CATEGORIES.map(cat => (
-                        <button
-                            key={cat.id}
-                            className={`category-pill ${selectedCategory === cat.id ? 'selected' : ''}`}
-                            onClick={() => setSelectedCategory(cat.id)}
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 4,
-                                padding: '8px 14px',
-                                borderRadius: 20,
-                                border: selectedCategory === cat.id ? `2px solid ${cat.color}` : '1px solid #e2e8f0',
-                                background: selectedCategory === cat.id ? `${cat.color}15` : 'white',
-                                fontSize: 13,
-                                fontWeight: 600,
-                                cursor: 'pointer',
-                                whiteSpace: 'nowrap',
-                                flexShrink: 0,
-                                color: selectedCategory === cat.id ? cat.color : '#64748b'
-                            }}
-                        >
-                            <span>{cat.icon}</span>
-                            <span>{language === 'hi' ? cat.hi : cat.en}</span>
-                        </button>
-                    ))}
-                </div>
+                            gap: 12,
+                            overflowX: 'auto',
+                            paddingBottom: 8,
+                            scrollbarWidth: 'none',
+                            msOverflowStyle: 'none',
+                        }}>
+                            {requests.slice(0, 6).map(request => {
+                                const category = getCategory(request.category)
+                                return (
+                                    <Link
+                                        key={request.id}
+                                        to="/demand"
+                                        style={{
+                                            minWidth: 160,
+                                            padding: 12,
+                                            background: 'linear-gradient(135deg, #fef3c7, #fde68a)',
+                                            borderRadius: 12,
+                                            textDecoration: 'none',
+                                            color: '#92400e',
+                                            flexShrink: 0,
+                                        }}
+                                    >
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                                            <span style={{
+                                                fontSize: 20,
+                                                background: 'rgba(255,255,255,0.6)',
+                                                borderRadius: 8,
+                                                padding: '4px 6px'
+                                            }}>
+                                                {category?.icon || '📦'}
+                                            </span>
+                                            <span style={{ fontSize: 13, fontWeight: 600, lineHeight: 1.2 }}>
+                                                {request.product_name.length > 18
+                                                    ? request.product_name.slice(0, 18) + '...'
+                                                    : request.product_name}
+                                            </span>
+                                        </div>
+                                        <div style={{ fontSize: 11, opacity: 0.8 }}>
+                                            {request.quantity && <span>📦 {request.quantity}</span>}
+                                            {request.expected_price && <span style={{ marginLeft: 8 }}>💰 ₹{request.expected_price}</span>}
+                                            {!request.quantity && !request.expected_price && (
+                                                <span>{language === 'hi' ? 'संपर्क करें' : 'Contact them'}</span>
+                                            )}
+                                        </div>
+                                    </Link>
+                                )
+                            })}
+                        </div>
+                    </div>
+                )}
 
                 {/* Loading */}
                 {loading && (

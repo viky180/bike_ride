@@ -108,6 +108,14 @@ export const STANDARD_CATEGORIES: Category[] = [
         hi: 'दवाखाना',
         color: '#ef4444',
         image: '/images/categories/pharmacy.png'
+    },
+    {
+        id: 'jobs',
+        icon: '💼',
+        en: 'Jobs',
+        hi: 'नौकरी',
+        color: '#8b5cf6',
+        image: '/images/categories/jobs.png'
     }
 ]
 
@@ -198,6 +206,13 @@ export const CATEGORIES: Category[] = [
         en: 'Pharmacy',
         hi: 'दवाखाना',
         color: '#ef4444'
+    },
+    {
+        id: 'jobs',
+        icon: '💼',
+        en: 'Jobs',
+        hi: 'नौकरी',
+        color: '#8b5cf6'
     },
     {
         id: 'other',

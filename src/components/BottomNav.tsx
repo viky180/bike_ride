@@ -15,12 +15,11 @@ export function BottomNav() {
         { path: '/my-rides', icon: '📋', label: t('my_rides') },
     ]
 
-    // Produce Mode navigation items - 5 items with Sell prominent in center
+    // Produce Mode navigation items - 4 items with Sell prominent in center
     const produceNavItems = [
         { path: '/', icon: '🏠', label: language === 'hi' ? 'होम' : 'Home', exact: true },
         { path: '/request', icon: '🔔', label: language === 'hi' ? 'मांग' : 'Request' },
         { path: '/sell', icon: '📦', label: language === 'hi' ? 'बेचें' : 'Sell', prominent: true },
-        { path: '/demand', icon: '📋', label: language === 'hi' ? 'ज़रूरत' : 'Demand' },
         { path: '/my-products', icon: '🏷️', label: language === 'hi' ? 'मेरा' : 'My Items' },
     ]
 

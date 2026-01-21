@@ -12,6 +12,7 @@ import { MyProductsPage } from './pages/MyProductsPage'
 import { RequestProductPage } from './pages/RequestProductPage'
 import { DemandBoardPage } from './pages/DemandBoardPage'
 import { ProductDetailPage } from './pages/ProductDetailPage'
+import { AdminPage } from './pages/AdminPage'
 
 function App() {
     const { user, mode } = useApp()
@@ -40,6 +41,8 @@ function App() {
             {/* Demand Board */}
             <Route path="/request" element={<RequestProductPage />} />
             <Route path="/demand" element={<DemandBoardPage />} />
+            {/* Admin */}
+            <Route path="/admin" element={<AdminPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
     )

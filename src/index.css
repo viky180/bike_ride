@@ -33,7 +33,7 @@
   --color-text: #1f2937;
   --color-text-light: #6b7280;
   --color-white: #ffffff;
-  --color-bg: #f0fdf4;
+  --color-bg: #ffffff;
   --color-bg-card: #ffffff;
   --color-border: #e5e7eb;
 
@@ -106,6 +106,7 @@ body {
   flex: 1;
   padding: var(--spacing-md);
   padding-bottom: calc(var(--spacing-xl) + env(safe-area-inset-bottom, 0));
+  overflow-y: auto;
 }
 
 /* Header */
@@ -115,7 +116,6 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid var(--color-border);
   position: sticky;
   top: 0;
   z-index: 100;
@@ -813,6 +813,134 @@ body {
   font-weight: 600;
   text-align: center;
   font-size: var(--font-size-base);
+}
+
+/* ================================================
+   Horizontal Category Selector (Blinkit-style)
+   ================================================ */
+
+.category-selector {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 8px 16px;
+  height: 72px;
+  align-items: stretch;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: 16px;
+  position: sticky;
+  top: 56px;
+  background: var(--color-white);
+  z-index: 50;
+}
+
+.category-selector::-webkit-scrollbar {
+  display: none;
+}
+
+.category-pill {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 64px;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 20px;
+  background: transparent;
+  cursor: pointer;
+  flex-shrink: 0;
+  position: relative;
+  transition: all 180ms ease-out;
+}
+
+.category-pill:active {
+  transform: scale(0.95);
+}
+
+/* Inactive state */
+.category-pill .category-pill-icon {
+  font-size: 28px;
+  filter: grayscale(30%);
+  opacity: 0.8;
+  transition: all 180ms ease-out;
+}
+
+/* Image icon style */
+.category-pill .category-pill-icon-img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  filter: grayscale(30%);
+  opacity: 0.8;
+  transition: all 180ms ease-out;
+}
+
+.category-pill.active .category-pill-icon-img {
+  filter: none;
+  opacity: 1;
+}
+
+.category-pill .category-pill-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: #6B7280;
+  white-space: nowrap;
+  text-align: center;
+  transition: color 180ms ease-out;
+}
+
+/* Active state */
+.category-pill.active {
+  background: color-mix(in srgb, var(--pill-color, var(--color-primary)) 12%, transparent);
+}
+
+.category-pill.active .category-pill-icon {
+  filter: none;
+  opacity: 1;
+}
+
+.category-pill.active .category-pill-label {
+  color: var(--pill-color, var(--color-primary));
+  font-weight: 600;
+}
+
+/* Underline indicator */
+.category-pill-indicator {
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 20px;
+  height: 3px;
+  background: var(--pill-color, var(--color-primary));
+  border-radius: 2px;
+  animation: indicator-in 180ms ease-out;
+}
+
+@keyframes indicator-in {
+  from {
+    width: 0;
+    opacity: 0;
+  }
+
+  to {
+    width: 20px;
+    opacity: 1;
+  }
+}
+
+/* Touch target enhancement */
+.category-pill::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  min-width: 44px;
+  min-height: 44px;
 }
 
 /* Product card */
