@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useApp } from '../context/AppContext'
+import { useAuth } from '../context/AuthContext'
 import { supabase, Ride } from '../lib/supabase'
 import { Header } from '../components/Header'
 import { BottomNav } from '../components/BottomNav'
@@ -34,7 +35,8 @@ function useOfflineCache() {
 }
 
 export function FindRidePage() {
-    const { t, user, showToast, isOnline, language } = useApp()
+    const { t, showToast, isOnline, language } = useApp()
+    const { user } = useAuth()
     const { cacheRides, getCachedRides } = useOfflineCache()
 
     const [rides, setRides] = useState<Ride[]>([])

@@ -1,6 +1,7 @@
+import { useEffect } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useApp } from './context/AppContext'
-import { UserSetup } from './components/UserSetup'
+import { AuthProvider } from './context/AuthContext'
 import { ModeSelection } from './pages/ModeSelection'
 import { HomePage } from './pages/Home'
 import { PostRidePage } from './pages/PostRide'
@@ -9,42 +10,64 @@ import { MyRidesPage } from './pages/MyRides'
 import { ProducePage } from './pages/ProducePage'
 import { SellProductPage } from './pages/SellProductPage'
 import { MyProductsPage } from './pages/MyProductsPage'
+import { MyAccountPage } from './pages/MyAccountPage'
 import { RequestProductPage } from './pages/RequestProductPage'
 import { DemandBoardPage } from './pages/DemandBoardPage'
 import { ProductDetailPage } from './pages/ProductDetailPage'
+import { EditProductPage } from './pages/EditProductPage'
 import { AdminPage } from './pages/AdminPage'
+import { LoginPage } from './pages/LoginPage'
+import { loadDefaultImagesFromDB } from './lib/defaultImages'
 
-function App() {
-    const { user, mode } = useApp()
+function AppRoutes() {
+    const { mode } = useApp()
 
-    // Show user setup if no user
-    if (!user) {
-        return <UserSetup onComplete={() => { }} />
-    }
+    // Load default images from database on app start
+    useEffect(() => {
+        loadDefaultImagesFromDB()
+    }, [])
 
-    // Show mode selection if no mode is set
+    // RIDE SHARING DEACTIVATED: Force 'produce' mode
+    // Show mode selection if no mode is set (currently always 'produce')
     if (!mode) {
         return <ModeSelection />
     }
 
     return (
         <Routes>
+            {/* Public routes - Guest can access */}
             <Route path="/" element={<HomePage />} />
+            <Route path="/produce" element={<ProducePage />} />
+            <Route path="/product/:id" element={<ProductDetailPage />} />
+            <Route path="/login" element={<LoginPage />} />
+
+            {/* Protected routes - Require authentication */}
+            <Route path="/sell" element={<SellProductPage />} />
+            <Route path="/my-products" element={<MyProductsPage />} />
+            <Route path="/my-account" element={<MyAccountPage />} />
+            <Route path="/edit-product/:id" element={<EditProductPage />} />
+            <Route path="/request" element={<RequestProductPage />} />
+            <Route path="/demand" element={<DemandBoardPage />} />
+
+            {/* Ride sharing routes (deactivated) */}
             <Route path="/post" element={<PostRidePage />} />
             <Route path="/find" element={<FindRidePage />} />
             <Route path="/my-rides" element={<MyRidesPage />} />
-            {/* Produce Module */}
-            <Route path="/produce" element={<ProducePage />} />
-            <Route path="/sell" element={<SellProductPage />} />
-            <Route path="/my-products" element={<MyProductsPage />} />
-            <Route path="/product/:id" element={<ProductDetailPage />} />
-            {/* Demand Board */}
-            <Route path="/request" element={<RequestProductPage />} />
-            <Route path="/demand" element={<DemandBoardPage />} />
+
             {/* Admin */}
             <Route path="/admin" element={<AdminPage />} />
+
+            {/* Redirect unknown routes */}
             <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+    )
+}
+
+function App() {
+    return (
+        <AuthProvider>
+            <AppRoutes />
+        </AuthProvider>
     )
 }
 

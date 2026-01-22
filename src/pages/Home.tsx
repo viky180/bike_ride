@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
+import { useAuth } from '../context/AuthContext'
 import { Header } from '../components/Header'
 import { BottomNav } from '../components/BottomNav'
 import { ProductCard } from '../components/ProductCard'
@@ -10,7 +11,8 @@ import { getStoredPincode } from '../lib/storage'
 import { getCategory } from '../lib/categories'
 
 export function HomePage() {
-    const { t, user, language, mode } = useApp()
+    const { t, language, mode } = useApp()
+    const { user } = useAuth()
 
     const [products, setProducts] = useState<Product[]>([])
     const [requests, setRequests] = useState<ProductRequest[]>([])

@@ -1,45 +1,76 @@
-// Default images utility - stores default images for categories and sub-categories
+// Default images utility - stores default images for categories and sub-categories in Supabase
 
-import { ProductCategory } from './supabase'
+import { supabase, ProductCategory } from './supabase'
 import { POPULAR_PRODUCTS, PopularProduct } from './popularProducts'
-
-const STORAGE_KEY = 'default_category_images'
-const SUBCATEGORY_STORAGE_KEY = 'default_subcategory_images'
 
 interface DefaultImageStore {
     [key: string]: string // category/subcategory -> image URL
 }
 
+// Local cache for images (populated from database)
+let categoryImagesCache: DefaultImageStore = {}
+let subcategoryImagesCache: DefaultImageStore = {}
+let cacheLoaded = false
+
 /**
- * Get all default category images from storage
+ * Load all default images from database into cache
+ * Call this on app initialization
  */
-export function getAllDefaultImages(): DefaultImageStore {
+export async function loadDefaultImagesFromDB(): Promise<void> {
     try {
-        const stored = localStorage.getItem(STORAGE_KEY)
-        return stored ? JSON.parse(stored) : {}
-    } catch {
-        return {}
+        const { data, error } = await supabase
+            .from('default_images')
+            .select('*')
+
+        if (error) {
+            console.error('Error loading default images:', error)
+            return
+        }
+
+        // Clear and populate caches
+        categoryImagesCache = {}
+        subcategoryImagesCache = {}
+
+        for (const row of data || []) {
+            if (row.image_type === 'category') {
+                categoryImagesCache[row.name] = row.image_url
+            } else if (row.image_type === 'subcategory') {
+                subcategoryImagesCache[row.name] = row.image_url
+            }
+        }
+
+        cacheLoaded = true
+    } catch (err) {
+        console.error('Failed to load default images:', err)
     }
 }
 
 /**
- * Get all default sub-category images from storage
+ * Get all default category images from cache
+ */
+export function getAllDefaultImages(): DefaultImageStore {
+    return { ...categoryImagesCache }
+}
+
+/**
+ * Get all default sub-category images from cache
  */
 export function getAllSubcategoryImages(): DefaultImageStore {
-    try {
-        const stored = localStorage.getItem(SUBCATEGORY_STORAGE_KEY)
-        return stored ? JSON.parse(stored) : {}
-    } catch {
-        return {}
-    }
+    return { ...subcategoryImagesCache }
+}
+
+/**
+ * Check if cache has been loaded
+ */
+export function isCacheLoaded(): boolean {
+    return cacheLoaded
 }
 
 /**
  * Get default image for a specific category
  */
 export function getDefaultImage(category: ProductCategory): string | null {
-    const images = getAllDefaultImages()
-    return images[category] || null
+    return categoryImagesCache[category] || null
 }
 
 /**
@@ -78,11 +109,10 @@ function findEnglishKeyForHindiName(productName: string): string | null {
  * Supports matching both English and Hindi product names
  */
 export function getDefaultImageForProduct(category: ProductCategory, productName: string): string | null {
-    const subcategoryImages = getAllSubcategoryImages()
     const normalizedName = productName.toLowerCase().trim()
 
     // Direct match: Check for exact or partial match in sub-category images
-    for (const [key, url] of Object.entries(subcategoryImages)) {
+    for (const [key, url] of Object.entries(subcategoryImagesCache)) {
         const lowerKey = key.toLowerCase()
         // Exact match
         if (lowerKey === normalizedName) {
@@ -100,8 +130,8 @@ export function getDefaultImageForProduct(category: ProductCategory, productName
 
     // Hindi name lookup: Find English key for Hindi-named products
     const englishKey = findEnglishKeyForHindiName(productName)
-    if (englishKey && subcategoryImages[englishKey]) {
-        return subcategoryImages[englishKey]
+    if (englishKey && subcategoryImagesCache[englishKey]) {
+        return subcategoryImagesCache[englishKey]
     }
 
     // Fall back to category default
@@ -109,37 +139,113 @@ export function getDefaultImageForProduct(category: ProductCategory, productName
 }
 
 /**
- * Set default image for a category
+ * Set default image for a category (saves to database)
  */
-export function setDefaultImage(category: ProductCategory, imageUrl: string): void {
-    const images = getAllDefaultImages()
-    images[category] = imageUrl
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(images))
+export async function setDefaultImage(category: ProductCategory, imageUrl: string): Promise<boolean> {
+    try {
+        const { error } = await supabase
+            .from('default_images')
+            .upsert({
+                image_type: 'category',
+                name: category,
+                image_url: imageUrl,
+                updated_at: new Date().toISOString()
+            }, {
+                onConflict: 'image_type,name'
+            })
+
+        if (error) {
+            console.error('Error saving category image:', error)
+            return false
+        }
+
+        // Update local cache
+        categoryImagesCache[category] = imageUrl
+        return true
+    } catch (err) {
+        console.error('Failed to save category image:', err)
+        return false
+    }
 }
 
 /**
- * Set default image for a sub-category
+ * Set default image for a sub-category (saves to database)
  */
-export function setSubcategoryImage(subcategoryName: string, imageUrl: string): void {
-    const images = getAllSubcategoryImages()
-    images[subcategoryName.toLowerCase()] = imageUrl
-    localStorage.setItem(SUBCATEGORY_STORAGE_KEY, JSON.stringify(images))
+export async function setSubcategoryImage(subcategoryName: string, imageUrl: string): Promise<boolean> {
+    const name = subcategoryName.toLowerCase()
+    try {
+        const { error } = await supabase
+            .from('default_images')
+            .upsert({
+                image_type: 'subcategory',
+                name: name,
+                image_url: imageUrl,
+                updated_at: new Date().toISOString()
+            }, {
+                onConflict: 'image_type,name'
+            })
+
+        if (error) {
+            console.error('Error saving subcategory image:', error)
+            return false
+        }
+
+        // Update local cache
+        subcategoryImagesCache[name] = imageUrl
+        return true
+    } catch (err) {
+        console.error('Failed to save subcategory image:', err)
+        return false
+    }
 }
 
 /**
- * Remove default image for a category
+ * Remove default image for a category (deletes from database)
  */
-export function removeDefaultImage(category: ProductCategory): void {
-    const images = getAllDefaultImages()
-    delete images[category]
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(images))
+export async function removeDefaultImage(category: ProductCategory): Promise<boolean> {
+    try {
+        const { error } = await supabase
+            .from('default_images')
+            .delete()
+            .eq('image_type', 'category')
+            .eq('name', category)
+
+        if (error) {
+            console.error('Error removing category image:', error)
+            return false
+        }
+
+        // Update local cache
+        delete categoryImagesCache[category]
+        return true
+    } catch (err) {
+        console.error('Failed to remove category image:', err)
+        return false
+    }
 }
 
 /**
- * Remove default image for a sub-category
+ * Remove default image for a sub-category (deletes from database)
  */
-export function removeSubcategoryImage(subcategoryName: string): void {
-    const images = getAllSubcategoryImages()
-    delete images[subcategoryName.toLowerCase()]
-    localStorage.setItem(SUBCATEGORY_STORAGE_KEY, JSON.stringify(images))
+export async function removeSubcategoryImage(subcategoryName: string): Promise<boolean> {
+    const name = subcategoryName.toLowerCase()
+    try {
+        const { error } = await supabase
+            .from('default_images')
+            .delete()
+            .eq('image_type', 'subcategory')
+            .eq('name', name)
+
+        if (error) {
+            console.error('Error removing subcategory image:', error)
+            return false
+        }
+
+        // Update local cache
+        delete subcategoryImagesCache[name]
+        return true
+    } catch (err) {
+        console.error('Failed to remove subcategory image:', err)
+        return false
+    }
 }

@@ -1,13 +1,15 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
+import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabase'
 import { Header } from '../components/Header'
 import { TimePicker } from '../components/TimePicker'
 import { NumberSelector } from '../components/NumberSelector'
 
 export function PostRidePage() {
-    const { t, user, showToast, language } = useApp()
+    const { t, showToast, language } = useApp()
+    const { user } = useAuth()
     const navigate = useNavigate()
 
     const [step, setStep] = useState(1)

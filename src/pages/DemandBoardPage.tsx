@@ -95,10 +95,19 @@ export function DemandBoardPage() {
                     </div>
                 )}
 
-                {/* Requests list */}
-                {!loading && filteredRequests.map(request => (
-                    <RequestCard key={request.id} request={request} />
-                ))}
+                {/* Requests grid */}
+                {!loading && filteredRequests.length > 0 && (
+                    <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(2, 1fr)',
+                        gap: 12,
+                        marginTop: 8
+                    }}>
+                        {filteredRequests.map(request => (
+                            <RequestCard key={request.id} request={request} />
+                        ))}
+                    </div>
+                )}
 
                 {/* FAB to add request */}
                 <Link to="/request" className="fab">

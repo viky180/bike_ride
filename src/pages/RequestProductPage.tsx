@@ -1,6 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
+import { useAuth } from '../context/AuthContext'
+import { useRequireAuth } from '../hooks/useRequireAuth'
 import { supabase, ProductCategory } from '../lib/supabase'
 import { CATEGORIES } from '../lib/categories'
 import { getPopularProducts, PopularProduct } from '../lib/popularProducts'
@@ -16,7 +18,9 @@ const LOCATION_SCOPES = [
 ]
 
 export function RequestProductPage() {
-    const { t, user, showToast, language } = useApp()
+    const { t, showToast, language } = useApp()
+    const { user } = useAuth()
+    const { isAuthenticated, isAuthLoading } = useRequireAuth()
     const navigate = useNavigate()
 
     const [step, setStep] = useState(1)
@@ -38,6 +42,13 @@ export function RequestProductPage() {
     const [selectedScope, setSelectedScope] = useState('state')
 
     const isJobCategory = category === 'jobs'
+
+    // Redirect to login if not authenticated
+    useEffect(() => {
+        if (!isAuthLoading && !isAuthenticated) {
+            navigate('/login')
+        }
+    }, [isAuthLoading, isAuthenticated, navigate])
 
     const handleSelectCategory = (cat: ProductCategory) => {
         setCategory(cat)

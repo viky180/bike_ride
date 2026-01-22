@@ -69,7 +69,8 @@ export default defineConfig({
         })
     ],
     server: {
-        host: true,
+        // Use 127.0.0.1 instead of localhost - Firebase phone auth no longer works with localhost
+        host: '127.0.0.1',
         port: 5173
     }
 })

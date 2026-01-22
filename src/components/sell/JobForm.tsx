@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useApp } from '../../context/AppContext'
+import { useAuth } from '../../context/AuthContext'
 import { getPopularProducts, PopularProduct } from '../../lib/popularProducts'
 import { CATEGORIES } from '../../lib/categories'
 import { CategoryBadge } from './CategoryBadge'
@@ -30,7 +31,8 @@ const LOCATION_SCOPES = [
 ]
 
 export function JobForm({ onBack, onSubmit, loading }: JobFormProps) {
-    const { user, language } = useApp()
+    const { language } = useApp()
+    const { user } = useAuth()
 
     const [jobType, setJobType] = useState('')
     const [showCustomInput, setShowCustomInput] = useState(false)

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useApp } from '../context/AppContext'
+import { useAuth } from '../context/AuthContext'
 import { supabase, Ride, Booking } from '../lib/supabase'
 import { Header } from '../components/Header'
 import { BottomNav } from '../components/BottomNav'
@@ -11,7 +12,8 @@ interface RideWithBookings extends Ride {
 }
 
 export function MyRidesPage() {
-    const { t, user, language, showToast } = useApp()
+    const { t, language, showToast } = useApp()
+    const { user } = useAuth()
 
     const [myRides, setMyRides] = useState<RideWithBookings[]>([])
     const [myBookings, setMyBookings] = useState<(Booking & { ride?: Ride })[]>([])

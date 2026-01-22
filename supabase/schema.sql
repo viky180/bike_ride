@@ -170,3 +170,55 @@ CREATE POLICY "Allow all for product_requests" ON product_requests FOR ALL USING
 -- CREATE POLICY "Public delete for product images"
 -- ON storage.objects FOR DELETE
 -- USING (bucket_id = 'product-images');
+
+-- ================================================
+-- Default Images for Categories/Sub-categories
+-- ================================================
+
+-- Default images for categories and sub-categories (moved from localStorage)
+CREATE TABLE IF NOT EXISTS default_images (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  image_type TEXT NOT NULL CHECK (image_type IN ('category', 'subcategory')),
+  name TEXT NOT NULL,  -- category id or subcategory name (lowercase)
+  image_url TEXT NOT NULL,  -- base64 data URL or external URL
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now(),
+  UNIQUE(image_type, name)
+);
+
+-- Index for fast lookups
+CREATE INDEX IF NOT EXISTS idx_default_images_type_name ON default_images(image_type, name);
+
+-- RLS for default_images
+ALTER TABLE default_images ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow all for default_images" ON default_images FOR ALL USING (true) WITH CHECK (true);
+
+-- ================================================
+-- Admin Panel Security
+-- ================================================
+
+-- Add admin flag to users table (run as migration if table exists)
+-- ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT false;
+
+-- Admin audit log for tracking all admin actions
+CREATE TABLE IF NOT EXISTS admin_audit_logs (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  admin_id UUID REFERENCES users(id) ON DELETE SET NULL,
+  action TEXT NOT NULL,              -- 'admin_login', 'admin_logout', 'delete_product', 'view_dashboard', etc.
+  target_type TEXT,                  -- 'product', 'user', 'category', 'subcategory', 'session', etc.
+  target_id UUID,                    -- ID of the affected resource (if applicable)
+  details JSONB DEFAULT '{}'::jsonb, -- Additional action details
+  ip_address TEXT,                   -- Client IP address (if available)
+  user_agent TEXT,                   -- Browser user agent
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- Indexes for admin_audit_logs
+CREATE INDEX IF NOT EXISTS idx_audit_admin_id ON admin_audit_logs(admin_id);
+CREATE INDEX IF NOT EXISTS idx_audit_action ON admin_audit_logs(action);
+CREATE INDEX IF NOT EXISTS idx_audit_created ON admin_audit_logs(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_audit_target ON admin_audit_logs(target_type, target_id);
+
+-- RLS for admin_audit_logs (allow all for now, can be restricted later)
+ALTER TABLE admin_audit_logs ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow all for admin_audit_logs" ON admin_audit_logs FOR ALL USING (true) WITH CHECK (true);

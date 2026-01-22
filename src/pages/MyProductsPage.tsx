@@ -1,16 +1,28 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
+import { useAuth } from '../context/AuthContext'
+import { useRequireAuth } from '../hooks/useRequireAuth'
 import { supabase, Product } from '../lib/supabase'
 import { Header } from '../components/Header'
 import { BottomNav } from '../components/BottomNav'
 import { ProductCard } from '../components/ProductCard'
 
 export function MyProductsPage() {
-    const { t, user, showToast } = useApp()
+    const { t, showToast } = useApp()
+    const { user } = useAuth()
+    const { isAuthenticated, isAuthLoading } = useRequireAuth()
+    const navigate = useNavigate()
 
     const [products, setProducts] = useState<Product[]>([])
     const [loading, setLoading] = useState(true)
+
+    // Redirect to login if not authenticated
+    useEffect(() => {
+        if (!isAuthLoading && !isAuthenticated) {
+            navigate('/login')
+        }
+    }, [isAuthLoading, isAuthenticated, navigate])
 
     useEffect(() => {
         if (user) fetchProducts()

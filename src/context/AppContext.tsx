@@ -1,16 +1,12 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 import { Language, getStoredLanguage, setStoredLanguage, t, TranslationKey } from '../lib/i18n'
-import { StoredUser, getStoredUser, setStoredUser as saveUser, AppMode, /* getStoredMode, */ setStoredMode } from '../lib/storage'
+import { AppMode, setStoredMode } from '../lib/storage'
 
 interface AppContextType {
     // Language
     language: Language
     setLanguage: (lang: Language) => void
     t: (key: TranslationKey) => string
-
-    // User
-    user: StoredUser | null
-    setUser: (user: StoredUser) => void
 
     // App Mode
     mode: AppMode | null
@@ -27,7 +23,6 @@ const AppContext = createContext<AppContextType | null>(null)
 
 export function AppProvider({ children }: { children: ReactNode }) {
     const [language, setLanguageState] = useState<Language>(getStoredLanguage())
-    const [user, setUserState] = useState<StoredUser | null>(getStoredUser())
     // RIDE SHARING DEACTIVATED: Force 'produce' mode. To reactivate, restore: useState<AppMode | null>(getStoredMode())
     const [mode, setModeState] = useState<AppMode | null>('produce')
     const [isOnline, setIsOnline] = useState(navigator.onLine)
@@ -51,11 +46,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setStoredLanguage(lang)
     }
 
-    const setUser = (newUser: StoredUser) => {
-        setUserState(newUser)
-        saveUser(newUser)
-    }
-
     const setMode = (newMode: AppMode) => {
         setModeState(newMode)
         setStoredMode(newMode)
@@ -73,8 +63,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
             language,
             setLanguage,
             t: translate,
-            user,
-            setUser,
             mode,
             setMode,
             isOnline,

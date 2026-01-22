@@ -1,6 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
+import { useAuth } from '../context/AuthContext'
+import { useRequireAuth } from '../hooks/useRequireAuth'
 import { supabase, ProductCategory } from '../lib/supabase'
 import { URGENCY_OPTIONS, SELLING_TYPE_OPTIONS, LACTATION_OPTIONS } from '../lib/sellFormConstants'
 import { Header } from '../components/Header'
@@ -27,12 +29,21 @@ import type {
 } from '../components/sell'
 
 export function SellProductPage() {
-    const { user, showToast, language } = useApp()
+    const { showToast, language } = useApp()
+    const { user } = useAuth()
+    const { isAuthenticated, isAuthLoading } = useRequireAuth()
     const navigate = useNavigate()
 
     const [step, setStep] = useState(1)
     const [category, setCategory] = useState<ProductCategory | null>(null)
     const [loading, setLoading] = useState(false)
+
+    // Redirect to login if not authenticated
+    useEffect(() => {
+        if (!isAuthLoading && !isAuthenticated) {
+            navigate('/login')
+        }
+    }, [isAuthLoading, isAuthenticated, navigate])
 
     const handleSelectCategory = (cat: ProductCategory) => {
         setCategory(cat)

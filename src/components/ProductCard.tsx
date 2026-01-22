@@ -209,7 +209,29 @@ export function ProductCard({
 
             {/* Owner actions (for My Products page) */}
             {onMarkSold && onDelete && product.status === 'available' && (
-                <div style={{ display: 'flex', gap: 8 }}>
+                <div style={{ display: 'flex', gap: 8, padding: 8 }}>
+                    {/* Edit Photos button */}
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation()
+                            navigate(`/edit-product/${product.id}`)
+                        }}
+                        style={{
+                            padding: '10px 14px',
+                            borderRadius: 10,
+                            border: '2px solid #dbeafe',
+                            background: '#eff6ff',
+                            color: '#1d4ed8',
+                            fontSize: 13,
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 4
+                        }}
+                    >
+                        📷
+                    </button>
                     <button
                         onClick={handleMarkSold}
                         style={{
