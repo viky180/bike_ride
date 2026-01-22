@@ -7,8 +7,7 @@ import {
     Auth,
     User as FirebaseUser
 } from 'firebase/auth'
-// Note: App Check imports commented out as it's disabled for development
-// import { initializeAppCheck, ReCaptchaV3Provider } from 'firebase/app-check'
+import { initializeAppCheck, ReCaptchaV3Provider } from 'firebase/app-check'
 
 // Firebase configuration from environment variables
 const firebaseConfig = {
@@ -20,8 +19,8 @@ const firebaseConfig = {
     appId: import.meta.env.VITE_FIREBASE_APP_ID
 }
 
-// reCAPTCHA v3 site key for App Check (currently disabled)
-// const RECAPTCHA_V3_SITE_KEY = import.meta.env.VITE_RECAPTCHA_V3_SITE_KEY
+// reCAPTCHA v3 site key for App Check
+const RECAPTCHA_V3_SITE_KEY = import.meta.env.VITE_RECAPTCHA_V3_SITE_KEY
 
 // Check if Firebase is configured
 export const isFirebaseConfigured = !!(
@@ -31,39 +30,29 @@ export const isFirebaseConfigured = !!(
 )
 
 if (!isFirebaseConfigured && import.meta.env.DEV) {
-    console.warn('⚠️ Firebase not configured. Please add VITE_FIREBASE_* variables to .env file.')
+    console.warn('Firebase not configured. Please add VITE_FIREBASE_* variables to .env file.')
 }
 
 // Initialize Firebase
 const app = isFirebaseConfigured ? initializeApp(firebaseConfig) : null
 
-// Initialize App Check with reCAPTCHA v3
-// TEMPORARILY DISABLED - Re-enable after adding debug token to Firebase Console
-// To fix: Copy the debug token from browser console and add it to:
-// Firebase Console → App Check → Apps → (⋮) → Manage debug tokens
-/*
-if (app && RECAPTCHA_V3_SITE_KEY) {
-    // Enable debug token for local development
-    if (import.meta.env.DEV) {
-        // @ts-ignore
-        self.FIREBASE_APPCHECK_DEBUG_TOKEN = true
-    }
-
+// Initialize App Check with reCAPTCHA v3 (production only)
+if (app && RECAPTCHA_V3_SITE_KEY && !import.meta.env.DEV) {
     try {
         initializeAppCheck(app, {
             provider: new ReCaptchaV3Provider(RECAPTCHA_V3_SITE_KEY),
             // Auto-refresh token
             isTokenAutoRefreshEnabled: true
         })
-        console.log('✅ Firebase App Check initialized with reCAPTCHA v3')
+        console.log('Firebase App Check initialized with reCAPTCHA v3')
     } catch (error) {
-        console.error('❌ Failed to initialize App Check:', error)
+        console.error('Failed to initialize App Check:', error)
     }
 } else if (app && !RECAPTCHA_V3_SITE_KEY) {
-    console.warn('⚠️ VITE_RECAPTCHA_V3_SITE_KEY not set. App Check not initialized.')
+    console.warn('VITE_RECAPTCHA_V3_SITE_KEY not set. App Check not initialized.')
+} else if (app && import.meta.env.DEV) {
+    console.log('App Check is disabled for development. Enable it for production.')
 }
-*/
-console.log('ℹ️ App Check is disabled for development. Enable it for production.')
 
 export const auth: Auth | null = app ? getAuth(app) : null
 
