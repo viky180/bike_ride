@@ -20,9 +20,49 @@ export function LoginPage() {
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState('')
     const [resendTimer, setResendTimer] = useState(0)
+    const [verifiedPhone, setVerifiedPhone] = useState('')
 
     const confirmationResultRef = useRef<ConfirmationResult | null>(null)
     const recaptchaVerifierRef = useRef<RecaptchaVerifier | null>(null)
+
+    const normalizePhone = (value: string) => {
+        const digits = value.replace(/\D/g, '')
+        if (digits.length >= 10) {
+            return digits.slice(-10)
+        }
+        return ''
+    }
+
+    const canSendOtp = () => {
+        const key = 'otp_send_history'
+        const now = Date.now()
+        const windowMs = 60 * 60 * 1000
+        const cooldownMs = 60 * 1000
+        const maxAttempts = 5
+
+        let history: number[] = []
+        try {
+            history = JSON.parse(localStorage.getItem(key) || '[]')
+        } catch (e) {
+            history = []
+        }
+
+        history = history.filter((ts) => now - ts < windowMs)
+
+        const lastAttempt = history.length ? history[history.length - 1] : 0
+        if (now - lastAttempt < cooldownMs) {
+            const remaining = Math.ceil((cooldownMs - (now - lastAttempt)) / 1000)
+            return { allowed: false, reason: `Please wait ${remaining}s before requesting another OTP.` }
+        }
+
+        if (history.length >= maxAttempts) {
+            return { allowed: false, reason: 'Too many OTP requests. Please try again later.' }
+        }
+
+        history.push(now)
+        localStorage.setItem(key, JSON.stringify(history))
+        return { allowed: true }
+    }
 
     // Resend timer countdown
     useEffect(() => {
@@ -53,6 +93,12 @@ export function LoginPage() {
 
         if (!auth) {
             setError('Firebase authentication is not configured.')
+            return
+        }
+
+        const otpCheck = canSendOtp()
+        if (!otpCheck.allowed) {
+            setError(otpCheck.reason || 'Too many OTP requests. Please try again later.')
             return
         }
 
@@ -126,14 +172,23 @@ export function LoginPage() {
         setError('')
 
         try {
-            await verifyOTP(confirmationResultRef.current, otp)
+            const fbUser = await verifyOTP(confirmationResultRef.current, otp)
+            const verified = fbUser.phoneNumber ? normalizePhone(fbUser.phoneNumber) : ''
+            if (!verified) {
+                setError('Unable to verify phone number. Please try again.')
+                setStep('phone')
+                return
+            }
+
+            setVerifiedPhone(verified)
+            setPhone(verified)
 
             // Check if user exists in Supabase
             if (isSupabaseConfigured) {
                 const { data: existingUser } = await supabase
                     .from('users')
                     .select('*')
-                    .eq('phone', phone)
+                    .eq('phone', verified)
                     .single()
 
                 if (existingUser) {
@@ -172,10 +227,18 @@ export function LoginPage() {
         setError('')
 
         try {
+            const phoneToUse = verifiedPhone || phone
+            if (!phoneToUse) {
+                setError('Phone verification is required. Please try again.')
+                setStep('phone')
+                setLoading(false)
+                return
+            }
+
             const { data, error: dbError } = await supabase
                 .from('users')
                 .insert({
-                    phone: phone,
+                    phone: phoneToUse,
                     name: name.trim(),
                     is_driver: false
                 })
