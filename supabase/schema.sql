@@ -222,3 +222,66 @@ CREATE INDEX IF NOT EXISTS idx_audit_target ON admin_audit_logs(target_type, tar
 -- RLS for admin_audit_logs (allow all for now, can be restricted later)
 ALTER TABLE admin_audit_logs ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Allow all for admin_audit_logs" ON admin_audit_logs FOR ALL USING (true) WITH CHECK (true);
+
+-- ================================================
+-- Delivery Helpers Module
+-- ================================================
+
+-- Delivery helpers registration (connecting buyers with local delivery people)
+CREATE TABLE IF NOT EXISTS delivery_helpers (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID REFERENCES users(id) ON DELETE CASCADE UNIQUE,
+  home_village TEXT NOT NULL,
+  service_villages TEXT[] NOT NULL,  -- max 5 including home village
+  vehicle_type TEXT NOT NULL CHECK (vehicle_type IN ('walk', 'cycle', 'bike', 'auto', 'tractor', 'van')),
+  availability_time TEXT NOT NULL CHECK (availability_time IN ('morning', 'evening', 'anytime')),
+  availability_hours TEXT,  -- optional custom hours, e.g., "9-12, 4-7"
+  capabilities TEXT[] NOT NULL,  -- item types: groceries, dairy, grains, stationery, books, small_parcels, furniture
+  rate_same_village INTEGER,  -- optional approx rate in rupees
+  rate_nearby_village INTEGER,
+  rate_far_village INTEGER,
+  phone TEXT NOT NULL,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- Indexes for delivery_helpers
+CREATE INDEX IF NOT EXISTS idx_delivery_helpers_user ON delivery_helpers(user_id);
+CREATE INDEX IF NOT EXISTS idx_delivery_helpers_home_village ON delivery_helpers(home_village);
+CREATE INDEX IF NOT EXISTS idx_delivery_helpers_service_villages ON delivery_helpers USING GIN(service_villages);
+CREATE INDEX IF NOT EXISTS idx_delivery_helpers_active ON delivery_helpers(is_active);
+
+-- RLS for delivery_helpers
+ALTER TABLE delivery_helpers ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow all for delivery_helpers" ON delivery_helpers FOR ALL USING (true) WITH CHECK (true);
+
+-- ================================================
+-- Shops Module (Shopkeeper Profiles)
+-- ================================================
+
+-- Add seller type to users (migration)
+-- ALTER TABLE users ADD COLUMN IF NOT EXISTS seller_type TEXT DEFAULT 'occasional' CHECK (seller_type IN ('occasional', 'shopkeeper'));
+
+-- Shops table for regular shopkeepers
+CREATE TABLE IF NOT EXISTS shops (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID REFERENCES users(id) ON DELETE CASCADE UNIQUE,
+  shop_name TEXT NOT NULL,
+  shop_slug TEXT UNIQUE NOT NULL,  -- URL-friendly name for shareable links (e.g., "ramesh-kirana")
+  description TEXT,
+  location TEXT,
+  pincode TEXT,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- Indexes for shops
+CREATE INDEX IF NOT EXISTS idx_shops_user ON shops(user_id);
+CREATE INDEX IF NOT EXISTS idx_shops_slug ON shops(shop_slug);
+CREATE INDEX IF NOT EXISTS idx_shops_active ON shops(is_active);
+
+-- RLS for shops
+ALTER TABLE shops ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow all for shops" ON shops FOR ALL USING (true) WITH CHECK (true);

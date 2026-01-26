@@ -70,8 +70,6 @@ export const POPULAR_PRODUCTS: Record<ProductCategory, PopularProduct[]> = {
         { name: 'Textbook', icon: '📚', hi: 'पाठ्यपुस्तक' },
         { name: 'Novel', icon: '📖', hi: 'उपन्यास' },
         { name: 'Notebook', icon: '📓', hi: 'नोटबुक' },
-    ],
-    stationery: [
         { name: 'Pen', icon: '🖊️', hi: 'पेन' },
         { name: 'Pencil', icon: '✏️', hi: 'पेंसिल' },
         { name: 'Eraser', icon: '🧹', hi: 'रबड़' },

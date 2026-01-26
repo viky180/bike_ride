@@ -17,6 +17,10 @@ import { ProductDetailPage } from './pages/ProductDetailPage'
 import { EditProductPage } from './pages/EditProductPage'
 import { AdminPage } from './pages/AdminPage'
 import { LoginPage } from './pages/LoginPage'
+import { DeliveryHelpPage } from './pages/DeliveryHelpPage'
+import { RegisterDeliveryHelperPage } from './pages/RegisterDeliveryHelperPage'
+import { ShopPage } from './pages/ShopPage'
+import { ShopSettingsPage } from './pages/ShopSettingsPage'
 import { loadDefaultImagesFromDB } from './lib/defaultImages'
 
 function AppRoutes() {
@@ -40,6 +44,7 @@ function AppRoutes() {
             <Route path="/produce" element={<ProducePage />} />
             <Route path="/product/:id" element={<ProductDetailPage />} />
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/delivery-help" element={<DeliveryHelpPage />} />
 
             {/* Protected routes - Require authentication */}
             <Route path="/sell" element={<SellProductPage />} />
@@ -48,6 +53,11 @@ function AppRoutes() {
             <Route path="/edit-product/:id" element={<EditProductPage />} />
             <Route path="/request" element={<RequestProductPage />} />
             <Route path="/demand" element={<DemandBoardPage />} />
+            <Route path="/delivery-help/register" element={<RegisterDeliveryHelperPage />} />
+            <Route path="/shop-settings" element={<ShopSettingsPage />} />
+
+            {/* Public shop pages */}
+            <Route path="/shop/:slug" element={<ShopPage />} />
 
             {/* Ride sharing routes (deactivated) */}
             <Route path="/post" element={<PostRidePage />} />

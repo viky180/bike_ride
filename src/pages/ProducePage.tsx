@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { supabase, Product, ProductCategory } from '../lib/supabase'
 import { HERO_CATEGORIES, STANDARD_CATEGORIES, CATEGORIES } from '../lib/categories'
@@ -11,6 +11,7 @@ import { useGeolocation } from '../lib/useGeolocation'
 
 export function ProducePage() {
     const { t, language } = useApp()
+    const navigate = useNavigate()
 
     const [products, setProducts] = useState<Product[]>([])
     const [loading, setLoading] = useState(true)
@@ -95,8 +96,13 @@ export function ProducePage() {
 
     const filteredProducts = getFilteredProducts()
 
-    const handleCategoryClick = (categoryId: ProductCategory) => {
-        setSelectedCategory(categoryId)
+    const handleCategoryClick = (categoryId: ProductCategory | string) => {
+        // Navigate to delivery help page for delivery_help category
+        if (categoryId === 'delivery_help') {
+            navigate('/delivery-help')
+            return
+        }
+        setSelectedCategory(categoryId as ProductCategory)
         setShowProducts(true)
     }
 

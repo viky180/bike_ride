@@ -22,6 +22,7 @@ export interface User {
     name: string
     is_driver: boolean
     is_admin: boolean
+    seller_type: 'occasional' | 'shopkeeper'
     created_at: string
 }
 
@@ -51,7 +52,7 @@ export interface Booking {
 }
 
 // Product categories
-export type ProductCategory = 'vegetables' | 'fruits' | 'grains' | 'dairy' | 'electronics' | 'clothes' | 'furniture' | 'books' | 'stationery' | 'vehicles' | 'livestock' | 'pharmacy' | 'jobs' | 'other'
+export type ProductCategory = 'vegetables' | 'fruits' | 'grains' | 'dairy' | 'electronics' | 'clothes' | 'furniture' | 'books' | 'vehicles' | 'livestock' | 'pharmacy' | 'jobs' | 'other'
 
 export interface Product {
     id: string
@@ -112,6 +113,227 @@ export interface ProductReport {
     reporter?: User
     product?: Product
     request?: ProductRequest
+}
+
+// Delivery Helper types
+export type VehicleType = 'walk' | 'cycle' | 'bike' | 'auto' | 'tractor' | 'van'
+export type AvailabilityTime = 'morning' | 'evening' | 'anytime'
+export type DeliveryCapability = 'groceries' | 'dairy' | 'grains' | 'stationery' | 'books' | 'small_parcels' | 'furniture'
+
+export interface DeliveryHelper {
+    id: string
+    user_id: string
+    home_village: string
+    service_villages: string[]
+    vehicle_type: VehicleType
+    availability_time: AvailabilityTime
+    availability_hours: string | null
+    capabilities: DeliveryCapability[]
+    rate_same_village: number | null
+    rate_nearby_village: number | null
+    rate_far_village: number | null
+    phone: string
+    is_active: boolean
+    created_at: string
+    updated_at: string
+    // Joined fields
+    user?: User
+}
+
+// Shop interface for shopkeeper profiles
+export interface Shop {
+    id: string
+    user_id: string
+    shop_name: string
+    shop_slug: string
+    description: string | null
+    location: string | null
+    pincode: string | null
+    is_active: boolean
+    created_at: string
+    updated_at: string
+    // Joined fields
+    owner?: User
+}
+
+// ============================================
+// Shop Management Utilities
+// ============================================
+
+/**
+ * Generate a URL-friendly slug from shop name
+ */
+export function generateShopSlug(shopName: string, phone: string): string {
+    const baseSlug = shopName
+        .toLowerCase()
+        .replace(/[^\w\s-]/g, '') // Remove special chars
+        .replace(/\s+/g, '-') // Replace spaces with hyphens
+        .replace(/-+/g, '-') // Replace multiple hyphens with single
+        .trim()
+    // Add last 4 digits of phone for uniqueness
+    const phoneSuffix = phone.slice(-4)
+    return `${baseSlug}-${phoneSuffix}`
+}
+
+/**
+ * Create a new shop for a user
+ */
+export async function createShop(
+    userId: string,
+    shopName: string,
+    phone: string,
+    description?: string,
+    location?: string,
+    pincode?: string
+): Promise<Shop | null> {
+    try {
+        const shopSlug = generateShopSlug(shopName, phone)
+
+        const { data, error } = await supabase
+            .from('shops')
+            .insert({
+                user_id: userId,
+                shop_name: shopName,
+                shop_slug: shopSlug,
+                description: description || null,
+                location: location || null,
+                pincode: pincode || null
+            })
+            .select()
+            .single()
+
+        if (error) {
+            console.error('Error creating shop:', error)
+            return null
+        }
+
+        // Update user's seller_type to shopkeeper
+        await supabase
+            .from('users')
+            .update({ seller_type: 'shopkeeper' })
+            .eq('id', userId)
+
+        return data
+    } catch (error) {
+        console.error('Error creating shop:', error)
+        return null
+    }
+}
+
+/**
+ * Get shop by user ID
+ */
+export async function getShopByUserId(userId: string): Promise<Shop | null> {
+    try {
+        const { data, error } = await supabase
+            .from('shops')
+            .select(`
+                *,
+                owner:users!user_id(id, name, phone)
+            `)
+            .eq('user_id', userId)
+            .single()
+
+        if (error) {
+            if (error.code === 'PGRST116') return null // No shop found
+            console.error('Error fetching shop:', error)
+            return null
+        }
+        return data
+    } catch (error) {
+        console.error('Error fetching shop:', error)
+        return null
+    }
+}
+
+/**
+ * Get shop by slug (for shareable links)
+ */
+export async function getShopBySlug(slug: string): Promise<Shop | null> {
+    try {
+        const { data, error } = await supabase
+            .from('shops')
+            .select(`
+                *,
+                owner:users!user_id(id, name, phone)
+            `)
+            .eq('shop_slug', slug)
+            .eq('is_active', true)
+            .single()
+
+        if (error) {
+            if (error.code === 'PGRST116') return null // No shop found
+            console.error('Error fetching shop by slug:', error)
+            return null
+        }
+        return data
+    } catch (error) {
+        console.error('Error fetching shop by slug:', error)
+        return null
+    }
+}
+
+/**
+ * Update shop details
+ */
+export async function updateShop(
+    shopId: string,
+    userId: string,
+    updates: Partial<Pick<Shop, 'shop_name' | 'description' | 'location' | 'pincode' | 'is_active'>>
+): Promise<boolean> {
+    try {
+        // Verify ownership
+        const { data: shop } = await supabase
+            .from('shops')
+            .select('user_id')
+            .eq('id', shopId)
+            .single()
+
+        if (!shop || shop.user_id !== userId) {
+            console.error('Unauthorized: User does not own this shop')
+            return false
+        }
+
+        const { error } = await supabase
+            .from('shops')
+            .update({ ...updates, updated_at: new Date().toISOString() })
+            .eq('id', shopId)
+
+        if (error) {
+            console.error('Error updating shop:', error)
+            return false
+        }
+        return true
+    } catch (error) {
+        console.error('Error updating shop:', error)
+        return false
+    }
+}
+
+/**
+ * Get all products from a shop owner
+ */
+export async function getShopProducts(userId: string): Promise<Product[]> {
+    try {
+        const { data, error } = await supabase
+            .from('products')
+            .select(`
+                *,
+                seller:users!seller_id(id, name, phone)
+            `)
+            .eq('seller_id', userId)
+            .eq('status', 'available')
+            .order('created_at', { ascending: false })
+
+        if (error) {
+            console.error('Error fetching shop products:', error)
+            return []
+        }
+        return data || []
+    } catch (error) {
+        console.error('Error fetching shop products:', error)
+        return []
+    }
 }
 
 // ============================================

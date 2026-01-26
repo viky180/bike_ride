@@ -121,6 +121,24 @@ body {
   z-index: 100;
 }
 
+/* Header + category filter stack (Home page) */
+.header-stack {
+  background: var(--color-white);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-stack .header {
+  position: static;
+}
+
+.header-stack .category-selector {
+  position: static;
+  top: auto;
+  margin-bottom: 0;
+}
+
 .header-title {
   font-size: var(--font-size-lg);
   font-weight: 700;

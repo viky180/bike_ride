@@ -174,6 +174,38 @@ export function MyAccountPage() {
                     <span className="menu-arrow">→</span>
                 </button>
 
+                {/* Shop Menu Item */}
+                <button
+                    className="menu-item"
+                    onClick={() => navigate('/shop-settings')}
+                >
+                    <span className="menu-icon" style={{ fontSize: 20 }}>🏪</span>
+                    <span className="menu-text">
+                        {user?.seller_type === 'shopkeeper'
+                            ? (language === 'hi' ? 'मेरी दुकान' : 'My Shop')
+                            : (language === 'hi' ? 'दुकानदार बनें' : 'Become a Shopkeeper')
+                        }
+                    </span>
+                    <span className="menu-arrow">→</span>
+                </button>
+
+                {/* Note for occasional sellers */}
+                {user?.seller_type !== 'shopkeeper' && (
+                    <div style={{
+                        padding: '8px 16px',
+                        marginTop: -8,
+                        marginBottom: 8,
+                        fontSize: 11,
+                        color: '#64748b',
+                        fontStyle: 'italic'
+                    }}>
+                        {language === 'hi'
+                            ? '* केवल नियमित दुकानदारों के लिए। कभी-कभार बेचने वाले इसे छोड़ें।'
+                            : '* Only for regular shopkeepers. Occasional sellers can skip this.'
+                        }
+                    </div>
+                )}
+
                 <button
                     className="menu-item logout"
                     onClick={handleLogout}

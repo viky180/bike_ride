@@ -1,8 +1,10 @@
-import { CATEGORIES } from '../lib/categories'
+import { HOME_CATEGORIES, ServiceCategory } from '../lib/categories'
 import { ProductCategory } from '../lib/supabase'
 
 // Icon paths for categories
-const CATEGORY_ICONS: Record<ProductCategory | 'all', string> = {
+type CategorySelection = ProductCategory | ServiceCategory | 'all'
+
+const CATEGORY_ICONS: Record<CategorySelection, string> = {
     all: '/images/icons/icon_all.png',
     vegetables: '/images/icons/icon_vegetables.png',
     fruits: '/images/icons/icon_fruits.png',
@@ -12,17 +14,17 @@ const CATEGORY_ICONS: Record<ProductCategory | 'all', string> = {
     clothes: '/images/icons/icon_clothes.png',
     furniture: '/images/icons/icon_furniture.png',
     books: '/images/icons/icon_books.png',
-    stationery: '/images/icons/icon_stationery.png',
     vehicles: '/images/icons/icon_vehicles.png',
     livestock: '/images/icons/icon_livestock.png',
     pharmacy: '/images/icons/icon_pharmacy.png',
     jobs: '/images/icons/icon_jobs.png',
-    other: '/images/icons/icon_other.png'
+    other: '/images/icons/icon_other.png',
+    delivery_help: '/images/icons/icon_delivery.png'
 }
 
 interface HorizontalCategorySelectorProps {
-    selectedCategory: ProductCategory | 'all'
-    onSelectCategory: (category: ProductCategory | 'all') => void
+    selectedCategory: CategorySelection
+    onSelectCategory: (category: CategorySelection) => void
     language: 'en' | 'hi'
 }
 
@@ -56,7 +58,7 @@ export function HorizontalCategorySelector({
             </button>
 
             {/* Category pills */}
-            {CATEGORIES.map(cat => (
+            {HOME_CATEGORIES.map(cat => (
                 <button
                     key={cat.id}
                     className={`category-pill ${selectedCategory === cat.id ? 'active' : ''}`}

@@ -3,12 +3,13 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { useAuth } from '../context/AuthContext'
 import { useRequireAuth } from '../hooks/useRequireAuth'
-import { supabase, Product, deleteImageFromStorage, uploadProductImage, updateProductImages } from '../lib/supabase'
+import { supabase, Product, DeliveryHelper, Shop, deleteImageFromStorage, uploadProductImage, updateProductImages, getShopByUserId } from '../lib/supabase'
 import { getCategory } from '../lib/categories'
 import { formatDistanceToNow } from 'date-fns'
 import { hi } from 'date-fns/locale'
 import { Header } from '../components/Header'
 import { ReportButton } from '../components/ReportButton'
+import { DeliveryHelperCard } from '../components/DeliveryHelperCard'
 
 export function ProductDetailPage() {
     const { id } = useParams<{ id: string }>()
@@ -27,6 +28,12 @@ export function ProductDetailPage() {
     const [isEditingImages, setIsEditingImages] = useState(false)
     const [isUploadingImage, setIsUploadingImage] = useState(false)
     const [isDeletingImage, setIsDeletingImage] = useState(false)
+
+    // Nearby delivery helpers
+    const [nearbyHelpers, setNearbyHelpers] = useState<DeliveryHelper[]>([])
+
+    // Seller's shop (if they are a shopkeeper)
+    const [sellerShop, setSellerShop] = useState<Shop | null>(null)
 
     // Check if current user is the product owner
     const isOwner = user && product && user.id === product.seller_id
@@ -56,6 +63,62 @@ export function ProductDetailPage() {
             navigate('/produce')
         } finally {
             setLoading(false)
+        }
+    }
+
+    // Fetch nearby delivery helpers based on product location
+    useEffect(() => {
+        if (product?.location) {
+            fetchNearbyHelpers()
+        }
+    }, [product?.location])
+
+    // Fetch seller's shop if they are a shopkeeper
+    useEffect(() => {
+        if (product?.seller_id) {
+            fetchSellerShop()
+        }
+    }, [product?.seller_id])
+
+    const fetchSellerShop = async () => {
+        if (!product?.seller_id) return
+        try {
+            const shop = await getShopByUserId(product.seller_id)
+            setSellerShop(shop)
+        } catch (error) {
+            console.error('Error fetching seller shop:', error)
+        }
+    }
+
+    const fetchNearbyHelpers = async () => {
+        if (!product?.location) return
+
+        try {
+            const searchTerm = product.location.toLowerCase().trim()
+
+            const { data, error } = await supabase
+                .from('delivery_helpers')
+                .select(`
+                    *,
+                    user:users!user_id(id, name, phone)
+                `)
+                .eq('is_active', true)
+                .limit(5)
+
+            if (error) throw error
+
+            // Filter helpers whose service_villages include the product location
+            const filtered = (data || []).filter((helper: DeliveryHelper) =>
+                helper.service_villages.some(v =>
+                    v.toLowerCase().includes(searchTerm) ||
+                    searchTerm.includes(v.toLowerCase())
+                ) ||
+                helper.home_village.toLowerCase().includes(searchTerm)
+            ).slice(0, 3)
+
+            setNearbyHelpers(filtered)
+        } catch (error) {
+            console.error('Error fetching nearby helpers:', error)
         }
     }
 
@@ -503,8 +566,55 @@ export function ProductDetailPage() {
                             </div>
                         )}
                         <div className="product-time">{timeAgo}</div>
+
+                        {/* View Shop Button - for shopkeepers */}
+                        {sellerShop && (
+                            <button
+                                onClick={() => navigate(`/shop/${sellerShop.shop_slug}`)}
+                                style={{
+                                    marginTop: 12,
+                                    width: '100%',
+                                    padding: '10px 16px',
+                                    borderRadius: 10,
+                                    border: '2px solid #667eea',
+                                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                    color: 'white',
+                                    fontSize: 14,
+                                    fontWeight: 600,
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: 8
+                                }}
+                            >
+                                🏪 {t('view_shop')} - {sellerShop.shop_name}
+                            </button>
+                        )}
                     </div>
                 </div>
+
+                {/* Nearby Delivery Helpers */}
+                {nearbyHelpers.length > 0 && (
+                    <div className="card mb-lg">
+                        <div className="section-title" style={{ marginBottom: 12 }}>
+                            🚚 {t('nearby_helpers')}
+                        </div>
+                        <div style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 12
+                        }}>
+                            {nearbyHelpers.map(helper => (
+                                <DeliveryHelperCard
+                                    key={helper.id}
+                                    helper={helper}
+                                    showDisclaimer={nearbyHelpers.indexOf(helper) === 0}
+                                />
+                            ))}
+                        </div>
+                    </div>
+                )}
 
                 {/* Contact Actions */}
                 {product.status === 'available' && product.seller?.phone && (

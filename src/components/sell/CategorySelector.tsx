@@ -1,5 +1,5 @@
 import { useApp } from '../../context/AppContext'
-import { HERO_CATEGORIES, STANDARD_CATEGORIES } from '../../lib/categories'
+import { HERO_CATEGORIES, PRODUCT_STANDARD_CATEGORIES } from '../../lib/categories'
 import { ProductCategory } from '../../lib/supabase'
 
 interface CategorySelectorProps {
@@ -42,7 +42,7 @@ export function CategorySelector({ onSelectCategory }: CategorySelectorProps) {
                     {language === 'hi' ? 'अन्य श्रेणियाँ' : 'Other Categories'}
                 </h2>
                 <div className="sell-category-standard-grid">
-                    {STANDARD_CATEGORIES.map(cat => (
+                    {PRODUCT_STANDARD_CATEGORIES.map(cat => (
                         <button
                             key={cat.id}
                             className="sell-category-standard-card"

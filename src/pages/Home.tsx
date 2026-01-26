@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { useAuth } from '../context/AuthContext'
 import { Header } from '../components/Header'
@@ -8,16 +8,17 @@ import { ProductCard } from '../components/ProductCard'
 import { supabase, Product, ProductCategory, ProductRequest } from '../lib/supabase'
 import { HorizontalCategorySelector } from '../components/HorizontalCategorySelector'
 import { getStoredPincode } from '../lib/storage'
-import { getCategory } from '../lib/categories'
+import { getCategory, ServiceCategory } from '../lib/categories'
 
 export function HomePage() {
     const { t, language, mode } = useApp()
     const { user } = useAuth()
+    const navigate = useNavigate()
 
     const [products, setProducts] = useState<Product[]>([])
     const [requests, setRequests] = useState<ProductRequest[]>([])
     const [loading, setLoading] = useState(true)
-    const [selectedCategory, setSelectedCategory] = useState<ProductCategory | 'all'>('all')
+    const [selectedCategory, setSelectedCategory] = useState<ProductCategory | ServiceCategory | 'all'>('all')
 
     // Check if ride mode (deactivated but keep for future)
     const isRideMode = mode === 'ride'
@@ -81,7 +82,7 @@ export function HomePage() {
         const pincode = getStoredPincode()
 
         // Filter by category
-        if (selectedCategory !== 'all') {
+        if (selectedCategory !== 'all' && selectedCategory !== 'delivery_help') {
             filtered = filtered.filter(p => p.category === selectedCategory)
         }
 
@@ -104,6 +105,14 @@ export function HomePage() {
     }
 
     const filteredProducts = getFilteredProducts()
+
+    const handleCategorySelect = (category: ProductCategory | ServiceCategory | 'all') => {
+        if (category === 'delivery_help') {
+            navigate('/delivery-help')
+            return
+        }
+        setSelectedCategory(category)
+    }
 
     // Ride mode view (deactivated but kept)
     if (isRideMode) {
@@ -154,14 +163,16 @@ export function HomePage() {
     // Produce mode - Show all products with categories
     return (
         <div className="app">
-            <Header title={headerTitle} />
+            <div className="header-stack">
+                <Header title={headerTitle} />
 
-            {/* Horizontal Category Selector (sticky) */}
-            <HorizontalCategorySelector
-                selectedCategory={selectedCategory}
-                onSelectCategory={setSelectedCategory}
-                language={language}
-            />
+                {/* Category filter */}
+                <HorizontalCategorySelector
+                    selectedCategory={selectedCategory}
+                    onSelectCategory={handleCategorySelect}
+                    language={language}
+                />
+            </div>
 
             <div className="page" style={{ paddingTop: 0 }}>
                 {/* Welcome message */}
