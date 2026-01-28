@@ -6,6 +6,8 @@ import { ItemSelector } from './ItemSelector'
 import { SellerContactInfo } from './SellerContactInfo'
 import { Disclaimer } from './Disclaimer'
 import { ImageUpload } from '../ImageUpload'
+import { useSellLocationDefaults } from '../../hooks/useSellLocationDefaults'
+import { PrefilledLabel } from './PrefilledLabel'
 
 interface VehiclesFormProps {
     onBack: () => void
@@ -32,6 +34,7 @@ export interface VehiclesFormData {
     whatsappEnabled: boolean
     imageFiles: File[]
     imagePreviews: string[]
+    thumbnailIndex: number
 }
 
 export function VehiclesForm({ onBack, onSubmit, loading }: VehiclesFormProps) {
@@ -57,6 +60,16 @@ export function VehiclesForm({ onBack, onSubmit, loading }: VehiclesFormProps) {
     const [whatsappEnabled, setWhatsappEnabled] = useState(true)
     const [imageFiles, setImageFiles] = useState<File[]>([])
     const [imagePreviews, setImagePreviews] = useState<string[]>([])
+    const [thumbnailIndex, setThumbnailIndex] = useState(0)
+
+    const { source } = useSellLocationDefaults({
+        location,
+        setLocation,
+        pincode,
+        setPincode,
+        phone: sellerPhone,
+        setPhone: setSellerPhone
+    })
 
     const handleSelectItem = (item: VehiclesItem) => {
         setVehiclesItem(item.id)
@@ -75,10 +88,14 @@ export function VehiclesForm({ onBack, onSubmit, loading }: VehiclesFormProps) {
         setImagePreviews(previews)
     }
 
+    const handleThumbnailChange = (index: number) => {
+        setThumbnailIndex(index)
+    }
+
     const handleSubmit = () => {
         onSubmit({
             name, selectedIcon, companyName, modelName, vehicleYear, kmDriven, fuelType, ownerCount,
-            hasRC, hasInsurance, defects, price, location, pincode, sellerPhone, whatsappEnabled, imageFiles, imagePreviews
+            hasRC, hasInsurance, defects, price, location, pincode, sellerPhone, whatsappEnabled, imageFiles, imagePreviews, thumbnailIndex
         })
     }
 
@@ -189,7 +206,7 @@ export function VehiclesForm({ onBack, onSubmit, loading }: VehiclesFormProps) {
                             style={{ width: '100%', padding: '16px', fontSize: '18px', borderRadius: '12px', border: '2px solid var(--color-border)', resize: 'vertical' }} />
                     </div>
 
-                    <ImageUpload onImagesChange={handleImagesChange} currentPreviews={imagePreviews} maxImages={5} />
+                    <ImageUpload onImagesChange={handleImagesChange} currentPreviews={imagePreviews} maxImages={5} thumbnailIndex={thumbnailIndex} onThumbnailChange={handleThumbnailChange} />
 
                     {/* Price */}
                     <div className="form-group">
@@ -198,6 +215,7 @@ export function VehiclesForm({ onBack, onSubmit, loading }: VehiclesFormProps) {
                             style={{ width: '100%', padding: '16px', fontSize: '24px', fontWeight: 700, borderRadius: '12px', border: '2px solid var(--color-border)' }} />
                     </div>
 
+                    <PrefilledLabel source={source} />
                     <SellerContactInfo location={location} onLocationChange={setLocation} pincode={pincode} onPincodeChange={setPincode}
                         sellerPhone={sellerPhone} onSellerPhoneChange={setSellerPhone} whatsappEnabled={whatsappEnabled} onWhatsappEnabledChange={setWhatsappEnabled} />
 

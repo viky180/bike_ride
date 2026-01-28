@@ -25,8 +25,11 @@ export function ProductCard({
     const navigate = useNavigate()
     const category = getCategory(product.category)
 
-    // Get first image from array, fallback to default sub-category or category image
-    const productImage = product.image_urls?.length > 0 ? product.image_urls[0] : null
+    // Get image from array based on thumbnail_index, fallback to first image, then default
+    const thumbnailIndex = product.thumbnail_index ?? 0
+    const productImage = product.image_urls?.length > 0
+        ? (product.image_urls[thumbnailIndex] || product.image_urls[0])
+        : null
     const defaultImage = getDefaultImageForProduct(product.category, product.name)
     const firstImage = productImage || defaultImage
 
@@ -76,15 +79,18 @@ export function ProductCard({
             className="product-card-modern"
         >
             {/* Image Section */}
-            <div style={{
-                position: 'relative',
-                aspectRatio: '1/1',
-                background: '#f8fafc',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                overflow: 'hidden'
-            }}>
+            <div
+                className="product-image-section"
+                style={{
+                    position: 'relative',
+                    aspectRatio: '4/5',
+                    background: '#f8fafc',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    overflow: 'hidden'
+                }}
+            >
                 {firstImage ? (
                     <img
                         src={firstImage}
@@ -92,7 +98,8 @@ export function ProductCard({
                         style={{
                             width: '100%',
                             height: '100%',
-                            objectFit: 'cover'
+                            objectFit: 'contain',
+                            objectPosition: 'center'
                         }}
                         loading="lazy"
                     />

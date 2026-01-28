@@ -22,12 +22,13 @@ export function ProductDetailPage() {
     const [product, setProduct] = useState<Product | null>(null)
     const [loading, setLoading] = useState(true)
     const [selectedImageIndex, setSelectedImageIndex] = useState(0)
-    const [showFullscreen, setShowFullscreen] = useState(false)
+    const galleryRef = useRef<HTMLDivElement>(null)
 
     // Image editing state
     const [isEditingImages, setIsEditingImages] = useState(false)
     const [isUploadingImage, setIsUploadingImage] = useState(false)
     const [isDeletingImage, setIsDeletingImage] = useState(false)
+    const [thumbnailIndex, setThumbnailIndex] = useState(0)
 
     // Nearby delivery helpers
     const [nearbyHelpers, setNearbyHelpers] = useState<DeliveryHelper[]>([])
@@ -58,6 +59,7 @@ export function ProductDetailPage() {
 
             if (error) throw error
             setProduct(data)
+            setThumbnailIndex(data.thumbnail_index ?? 0)
         } catch (error) {
             console.error('Error fetching product:', error)
             navigate('/produce')
@@ -187,12 +189,12 @@ export function ProductDetailPage() {
         window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank')
     }
 
-    const nextImage = () => {
-        setSelectedImageIndex((prev) => (prev + 1) % images.length)
-    }
-
-    const prevImage = () => {
-        setSelectedImageIndex((prev) => (prev - 1 + images.length) % images.length)
+    const handleGalleryScroll = () => {
+        const gallery = galleryRef.current
+        if (!gallery) return
+        const slideWidth = gallery.clientWidth || 1
+        const nextIndex = Math.round(gallery.scrollLeft / slideWidth)
+        setSelectedImageIndex(Math.min(Math.max(nextIndex, 0), images.length - 1))
     }
 
     // Image management handlers
@@ -210,13 +212,22 @@ export function ProductDetailPage() {
             // Delete from storage
             await deleteImageFromStorage(imageUrl)
 
+            // Calculate new thumbnail index
+            let newThumbnailIndex = thumbnailIndex
+            if (index === thumbnailIndex) {
+                newThumbnailIndex = 0
+            } else if (index < thumbnailIndex) {
+                newThumbnailIndex = thumbnailIndex - 1
+            }
+
             // Update product with remaining images (with ownership verification)
             const newImageUrls = images.filter((_, i) => i !== index)
-            const success = await updateProductImages(id, newImageUrls, user!.id)
+            const success = await updateProductImages(id, newImageUrls, user!.id, newThumbnailIndex)
 
             if (success) {
                 // Update local state
-                setProduct(prev => prev ? { ...prev, image_urls: newImageUrls } : null)
+                setProduct(prev => prev ? { ...prev, image_urls: newImageUrls, thumbnail_index: newThumbnailIndex } : null)
+                setThumbnailIndex(newThumbnailIndex)
                 // Adjust selected index if needed
                 if (selectedImageIndex >= newImageUrls.length) {
                     setSelectedImageIndex(Math.max(0, newImageUrls.length - 1))
@@ -230,6 +241,21 @@ export function ProductDetailPage() {
             showToast(language === 'hi' ? 'फोटो हटाने में त्रुटि' : 'Error deleting image')
         } finally {
             setIsDeletingImage(false)
+        }
+    }
+
+    const handleSetThumbnail = async (index: number) => {
+        if (!product || !id || !user) return
+
+        try {
+            const success = await updateProductImages(id, images, user.id, index)
+            if (success) {
+                setThumbnailIndex(index)
+                setProduct(prev => prev ? { ...prev, thumbnail_index: index } : null)
+                showToast(language === 'hi' ? '⭐ मुख्य फोटो सेट की गई' : '⭐ Main photo set')
+            }
+        } catch (error) {
+            console.error('Error setting thumbnail:', error)
         }
     }
 
@@ -318,29 +344,28 @@ export function ProductDetailPage() {
 
                 {/* Image Gallery */}
                 {hasImages ? (
-                    <div className="product-gallery">
+                    <div className="product-gallery-fullscreen">
                         <div
-                            className="product-gallery-main"
-                            onClick={() => !isEditingImages && setShowFullscreen(true)}
+                            className="product-gallery-scroll"
+                            ref={galleryRef}
+                            onScroll={handleGalleryScroll}
                         >
-                            <img
-                                src={images[selectedImageIndex]}
-                                alt={`${product.name} - Photo ${selectedImageIndex + 1}`}
-                            />
-                            {images.length > 1 && !isEditingImages && (
-                                <>
-                                    <button className="gallery-nav prev" onClick={(e) => { e.stopPropagation(); prevImage(); }}>‹</button>
-                                    <button className="gallery-nav next" onClick={(e) => { e.stopPropagation(); nextImage(); }}>›</button>
-                                </>
-                            )}
-                            <div className="gallery-counter">
-                                {selectedImageIndex + 1} / {images.length}
-                            </div>
-                            {!isEditingImages && (
-                                <div className="gallery-zoom-hint">
-                                    {language === 'hi' ? '🔍 बड़ा करने के लिए टैप करें' : '🔍 Tap to enlarge'}
+                            {images.map((img, index) => (
+                                <div key={img} className="product-gallery-slide">
+                                    <img
+                                        src={img}
+                                        alt={`${product.name} - Photo ${index + 1}`}
+                                    />
                                 </div>
-                            )}
+                            ))}
+                        </div>
+                        <div className="gallery-dots">
+                            {images.map((_, index) => (
+                                <span
+                                    key={`dot-${index}`}
+                                    className={`gallery-dot ${index === selectedImageIndex ? 'active' : ''}`}
+                                />
+                            ))}
                         </div>
 
                         {/* Thumbnails with delete option in edit mode */}
@@ -349,8 +374,21 @@ export function ProductDetailPage() {
                                 <div key={index} style={{ position: 'relative' }}>
                                     <button
                                         className={`gallery-thumb ${index === selectedImageIndex ? 'active' : ''}`}
-                                        onClick={() => setSelectedImageIndex(index)}
+                                        onClick={() => {
+                                            setSelectedImageIndex(index)
+                                            const gallery = galleryRef.current
+                                            if (gallery) {
+                                                gallery.scrollTo({
+                                                    left: gallery.clientWidth * index,
+                                                    behavior: 'smooth'
+                                                })
+                                            }
+                                        }}
                                         disabled={isDeletingImage}
+                                        style={{
+                                            border: thumbnailIndex === index ? '3px solid #22c55e' : undefined,
+                                            boxShadow: thumbnailIndex === index ? '0 0 8px rgba(34, 197, 94, 0.4)' : undefined
+                                        }}
                                     >
                                         <img src={img} alt={`Thumbnail ${index + 1}`} />
                                     </button>
@@ -384,6 +422,45 @@ export function ProductDetailPage() {
                                         >
                                             ✕
                                         </button>
+                                    )}
+                                    {/* Thumbnail badge or Set Main button in edit mode */}
+                                    {isEditingImages && images.length > 1 && (
+                                        thumbnailIndex === index ? (
+                                            <span style={{
+                                                position: 'absolute',
+                                                bottom: 2,
+                                                left: 2,
+                                                fontSize: 9,
+                                                background: '#22c55e',
+                                                color: 'white',
+                                                padding: '2px 5px',
+                                                borderRadius: 4,
+                                                fontWeight: 600
+                                            }}>
+                                                ⭐ {language === 'hi' ? 'मुख्य' : 'Main'}
+                                            </span>
+                                        ) : (
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation()
+                                                    handleSetThumbnail(index)
+                                                }}
+                                                style={{
+                                                    position: 'absolute',
+                                                    bottom: 2,
+                                                    left: 2,
+                                                    fontSize: 8,
+                                                    background: 'rgba(0,0,0,0.6)',
+                                                    color: 'white',
+                                                    padding: '2px 5px',
+                                                    borderRadius: 4,
+                                                    border: 'none',
+                                                    cursor: 'pointer'
+                                                }}
+                                            >
+                                                ⭐ {language === 'hi' ? 'मुख्य बनाएं' : 'Set Main'}
+                                            </button>
+                                        )
                                     )}
                                 </div>
                             ))}
@@ -646,26 +723,7 @@ export function ProductDetailPage() {
                 </div>
             </div>
 
-            {/* Fullscreen Image Modal */}
-            {showFullscreen && hasImages && (
-                <div className="fullscreen-modal" onClick={() => setShowFullscreen(false)}>
-                    <button className="fullscreen-close">✕</button>
-                    <img
-                        src={images[selectedImageIndex]}
-                        alt={`${product.name} - Full view`}
-                        onClick={(e) => e.stopPropagation()}
-                    />
-                    {images.length > 1 && (
-                        <>
-                            <button className="fullscreen-nav prev" onClick={(e) => { e.stopPropagation(); prevImage(); }}>‹</button>
-                            <button className="fullscreen-nav next" onClick={(e) => { e.stopPropagation(); nextImage(); }}>›</button>
-                        </>
-                    )}
-                    <div className="fullscreen-counter">
-                        {selectedImageIndex + 1} / {images.length}
-                    </div>
-                </div>
-            )}
+            {/* Fullscreen Image Modal removed in favor of scroll gallery */}
         </div>
     )
 }

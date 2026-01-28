@@ -5,6 +5,8 @@ interface ImageUploadProps {
     onImagesChange: (files: File[], previews: string[]) => void
     currentPreviews?: string[]
     maxImages?: number
+    thumbnailIndex?: number
+    onThumbnailChange?: (index: number) => void
 }
 
 // Compress image to reduce file size for low bandwidth
@@ -55,12 +57,18 @@ async function compressImage(file: File, maxWidth: number = 800, quality: number
     })
 }
 
-export function ImageUpload({ onImagesChange, currentPreviews = [], maxImages = 3 }: ImageUploadProps) {
+export function ImageUpload({ onImagesChange, currentPreviews = [], maxImages = 3, thumbnailIndex = 0, onThumbnailChange }: ImageUploadProps) {
     const { language } = useApp()
     const fileInputRef = useRef<HTMLInputElement>(null)
     const [previews, setPreviews] = useState<string[]>(currentPreviews)
     const [files, setFiles] = useState<File[]>([])
     const [loading, setLoading] = useState(false)
+    const [selectedThumbnail, setSelectedThumbnail] = useState(thumbnailIndex)
+
+    const handleThumbnailSelect = (index: number) => {
+        setSelectedThumbnail(index)
+        onThumbnailChange?.(index)
+    }
 
     const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const selectedFiles = Array.from(e.target.files || [])
@@ -107,6 +115,18 @@ export function ImageUpload({ onImagesChange, currentPreviews = [], maxImages = 
         setFiles(updatedFiles)
         setPreviews(updatedPreviews)
         onImagesChange(updatedFiles, updatedPreviews)
+
+        // Adjust thumbnail index if needed
+        if (index === selectedThumbnail) {
+            // If we removed the thumbnail, reset to first image
+            setSelectedThumbnail(0)
+            onThumbnailChange?.(0)
+        } else if (index < selectedThumbnail) {
+            // If we removed an image before the thumbnail, shift index down
+            const newIndex = selectedThumbnail - 1
+            setSelectedThumbnail(newIndex)
+            onThumbnailChange?.(newIndex)
+        }
     }
 
     const triggerFileInput = () => {
@@ -128,7 +148,7 @@ export function ImageUpload({ onImagesChange, currentPreviews = [], maxImages = 
                 ref={fileInputRef}
                 type="file"
                 accept="image/*"
-                capture="environment"
+                multiple
                 onChange={handleFileSelect}
                 style={{ display: 'none' }}
             />
@@ -137,8 +157,63 @@ export function ImageUpload({ onImagesChange, currentPreviews = [], maxImages = 
             {previews.length > 0 && (
                 <div className="image-previews-grid">
                     {previews.map((preview, index) => (
-                        <div key={index} className="image-preview-item">
+                        <div
+                            key={index}
+                            className="image-preview-item"
+                            style={{
+                                border: selectedThumbnail === index ? '3px solid #22c55e' : undefined,
+                                boxShadow: selectedThumbnail === index ? '0 0 8px rgba(34, 197, 94, 0.4)' : undefined
+                            }}
+                        >
                             <img src={preview} alt={`Preview ${index + 1}`} />
+
+                            {/* Thumbnail badge for selected */}
+                            {selectedThumbnail === index && (
+                                <span style={{
+                                    position: 'absolute',
+                                    top: 4,
+                                    left: 4,
+                                    background: '#22c55e',
+                                    color: 'white',
+                                    fontSize: 10,
+                                    fontWeight: 600,
+                                    padding: '2px 6px',
+                                    borderRadius: 6,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 2
+                                }}>
+                                    ⭐ {language === 'hi' ? 'मुख्य' : 'Main'}
+                                </span>
+                            )}
+
+                            {/* Set as thumbnail button (only show for non-selected images when we have multiple) */}
+                            {previews.length > 1 && selectedThumbnail !== index && (
+                                <button
+                                    type="button"
+                                    onClick={() => handleThumbnailSelect(index)}
+                                    style={{
+                                        position: 'absolute',
+                                        bottom: 4,
+                                        left: 4,
+                                        background: 'rgba(0,0,0,0.7)',
+                                        color: 'white',
+                                        fontSize: 9,
+                                        fontWeight: 600,
+                                        padding: '3px 6px',
+                                        borderRadius: 6,
+                                        border: 'none',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: 2
+                                    }}
+                                    aria-label={language === 'hi' ? 'मुख्य फोटो बनाएं' : 'Set as main'}
+                                >
+                                    ⭐ {language === 'hi' ? 'मुख्य बनाएं' : 'Set Main'}
+                                </button>
+                            )}
+
                             <button
                                 type="button"
                                 className="image-preview-remove"

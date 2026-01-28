@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { useAuth } from '../context/AuthContext'
 import { useRequireAuth } from '../hooks/useRequireAuth'
-import { supabase, ProductCategory } from '../lib/supabase'
+import { supabase, ProductCategory, getShopByUserId, Shop } from '../lib/supabase'
+import { getCategory } from '../lib/categories'
 import { URGENCY_OPTIONS, SELLING_TYPE_OPTIONS, LACTATION_OPTIONS } from '../lib/sellFormConstants'
 import { Header } from '../components/Header'
 import {
@@ -37,6 +38,9 @@ export function SellProductPage() {
     const [step, setStep] = useState(1)
     const [category, setCategory] = useState<ProductCategory | null>(null)
     const [loading, setLoading] = useState(false)
+    const [_shop, setShop] = useState<Shop | null>(null)
+    const [shopLoading, setShopLoading] = useState(true)
+    const [usingShopCategory, setUsingShopCategory] = useState(false)
 
     // Redirect to login if not authenticated
     useEffect(() => {
@@ -45,14 +49,41 @@ export function SellProductPage() {
         }
     }, [isAuthLoading, isAuthenticated, navigate])
 
+    // Fetch seller's shop to get default category
+    useEffect(() => {
+        const fetchShop = async () => {
+            if (!user) {
+                setShopLoading(false)
+                return
+            }
+            try {
+                const shopData = await getShopByUserId(user.id)
+                setShop(shopData)
+                // If shop has a category, auto-select it and skip to step 2
+                if (shopData?.category) {
+                    setCategory(shopData.category)
+                    setUsingShopCategory(true)
+                    setStep(2)
+                }
+            } catch (error) {
+                console.error('Error fetching shop:', error)
+            } finally {
+                setShopLoading(false)
+            }
+        }
+        fetchShop()
+    }, [user])
+
     const handleSelectCategory = (cat: ProductCategory) => {
         setCategory(cat)
+        setUsingShopCategory(false)
         setStep(2)
     }
 
     const handleBack = () => {
         setStep(1)
         setCategory(null)
+        setUsingShopCategory(false)
     }
 
     // Upload images to Supabase storage
@@ -91,6 +122,7 @@ export function SellProductPage() {
         location: string
         pincode: string
         imageUrls: string[]
+        thumbnailIndex?: number
         medicines?: string[] | null
         discountPercent?: string | null
     }) => {
@@ -103,6 +135,7 @@ export function SellProductPage() {
             location: data.location.trim() || null,
             pincode: data.pincode.trim() || null,
             image_urls: data.imageUrls,
+            thumbnail_index: data.thumbnailIndex ?? 0,
             status: 'available',
             medicines: data.medicines,
             discount_percent: data.discountPercent
@@ -135,7 +168,8 @@ export function SellProductPage() {
                 price: data.price,
                 location: data.location,
                 pincode: data.pincode,
-                imageUrls
+                imageUrls,
+                thumbnailIndex: data.thumbnailIndex
             })
 
             showToast(language === 'hi' ? '✅ उत्पाद पोस्ट हो गया!' : '✅ Product posted!')
@@ -172,7 +206,8 @@ export function SellProductPage() {
                 price: data.price,
                 location: data.location,
                 pincode: data.pincode,
-                imageUrls
+                imageUrls,
+                thumbnailIndex: data.thumbnailIndex
             })
 
             showToast(language === 'hi' ? '✅ उत्पाद पोस्ट हो गया!' : '✅ Product posted!')
@@ -210,7 +245,8 @@ export function SellProductPage() {
                 price: data.price,
                 location: data.location,
                 pincode: data.pincode,
-                imageUrls
+                imageUrls,
+                thumbnailIndex: data.thumbnailIndex
             })
 
             showToast(language === 'hi' ? '✅ उत्पाद पोस्ट हो गया!' : '✅ Product posted!')
@@ -250,7 +286,8 @@ export function SellProductPage() {
                 price: data.price,
                 location: data.location,
                 pincode: data.pincode,
-                imageUrls
+                imageUrls,
+                thumbnailIndex: data.thumbnailIndex
             })
 
             showToast(language === 'hi' ? '✅ उत्पाद पोस्ट हो गया!' : '✅ Product posted!')
@@ -294,7 +331,8 @@ export function SellProductPage() {
                 price: data.price,
                 location: data.location,
                 pincode: data.pincode,
-                imageUrls
+                imageUrls,
+                thumbnailIndex: data.thumbnailIndex
             })
 
             showToast(language === 'hi' ? '✅ उत्पाद पोस्ट हो गया!' : '✅ Product posted!')
@@ -325,12 +363,13 @@ export function SellProductPage() {
             // For pharmacy, the "name" is the Shop Name
             await insertProduct({
                 name: data.shopName.trim(),
-                quantity: 'Items Available', // Pharmacy listings are often for the shop/inventory generally
+                quantity: 'Items Available',
                 category: 'pharmacy',
-                price: 'Contact for Price', // Usually prices vary per medicine
+                price: 'Contact for Price',
                 location: data.location,
                 pincode: data.pincode,
                 imageUrls,
+                thumbnailIndex: data.thumbnailIndex,
                 medicines: data.medicines,
                 discountPercent: data.discountPercent || null
             })
@@ -395,7 +434,8 @@ export function SellProductPage() {
                 price: data.price,
                 location: data.location,
                 pincode: data.pincode,
-                imageUrls
+                imageUrls,
+                thumbnailIndex: data.thumbnailIndex
             })
 
             showToast(language === 'hi' ? '✅ उत्पाद पोस्ट हो गया!' : '✅ Product posted!')
@@ -421,9 +461,61 @@ export function SellProductPage() {
             <Header title={language === 'hi' ? 'सामान बेचें' : 'Sell Items'} showBack />
 
             <div className="page category-browse-page">
+                {/* Loading state while fetching shop */}
+                {shopLoading && (
+                    <div className="loading">
+                        <div className="spinner"></div>
+                    </div>
+                )}
+
                 {/* Step 1: Select Category */}
-                {step === 1 && (
+                {!shopLoading && step === 1 && (
                     <CategorySelector onSelectCategory={handleSelectCategory} />
+                )}
+
+                {/* Auto-selected category indicator */}
+                {step === 2 && usingShopCategory && category && (
+                    <div style={{
+                        background: '#ecfdf5',
+                        border: '2px solid #10b981',
+                        borderRadius: 12,
+                        padding: 12,
+                        marginBottom: 16,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: 12
+                    }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <span style={{ fontSize: 20 }}>{getCategory(category)?.icon}</span>
+                            <div>
+                                <div style={{ fontSize: 13, fontWeight: 600, color: '#065f46' }}>
+                                    {language === 'hi' ? 'आपकी दुकान श्रेणी' : 'Your Shop Category'}
+                                </div>
+                                <div style={{ fontSize: 14, color: '#047857' }}>
+                                    {language === 'hi'
+                                        ? getCategory(category)?.hi
+                                        : getCategory(category)?.en}
+                                </div>
+                            </div>
+                        </div>
+                        <button
+                            onClick={handleBack}
+                            style={{
+                                padding: '6px 12px',
+                                borderRadius: 8,
+                                border: '1px solid #10b981',
+                                background: 'white',
+                                color: '#047857',
+                                fontSize: 12,
+                                fontWeight: 600,
+                                cursor: 'pointer',
+                                whiteSpace: 'nowrap'
+                            }}
+                        >
+                            {language === 'hi' ? 'बदलें' : 'Change'}
+                        </button>
+                    </div>
                 )}
 
                 {/* Step 2: Category-specific forms */}

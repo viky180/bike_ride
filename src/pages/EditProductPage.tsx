@@ -28,6 +28,7 @@ export function EditProductPage() {
     const [currentImageUrls, setCurrentImageUrls] = useState<string[]>([])
     const [newFiles, setNewFiles] = useState<File[]>([])
     const [deletedUrls, setDeletedUrls] = useState<string[]>([])
+    const [thumbnailIndex, setThumbnailIndex] = useState(0)
 
     // Redirect to login if not authenticated
     useEffect(() => {
@@ -66,6 +67,7 @@ export function EditProductPage() {
 
             setProduct(data)
             setCurrentImageUrls(data.image_urls || [])
+            setThumbnailIndex(data.thumbnail_index ?? 0)
         } catch (error) {
             console.error('Error fetching product:', error)
             showToast(language === 'hi' ? '❌ उत्पाद नहीं मिला' : '❌ Product not found')
@@ -79,6 +81,10 @@ export function EditProductPage() {
         setCurrentImageUrls(imageUrls)
         setNewFiles(files)
         setDeletedUrls(deleted)
+    }
+
+    const handleThumbnailChange = (index: number) => {
+        setThumbnailIndex(index)
     }
 
     const handleSave = async () => {
@@ -103,7 +109,7 @@ export function EditProductPage() {
             const finalUrls = [...currentImageUrls, ...uploadedUrls]
 
             // 3. Update product in database (with ownership verification)
-            const success = await updateProductImages(product.id, finalUrls, user.id)
+            const success = await updateProductImages(product.id, finalUrls, user.id, thumbnailIndex)
             if (!success) {
                 throw new Error('Failed to update product')
             }
@@ -125,7 +131,7 @@ export function EditProductPage() {
         }
     }
 
-    const hasChanges = newFiles.length > 0 || deletedUrls.length > 0
+    const hasChanges = newFiles.length > 0 || deletedUrls.length > 0 || thumbnailIndex !== (product?.thumbnail_index ?? 0)
 
     if (loading || isAuthLoading) {
         return (
@@ -187,6 +193,8 @@ export function EditProductPage() {
                         maxImages={5}
                         onImagesChange={handleImagesChange}
                         loading={saving}
+                        thumbnailIndex={thumbnailIndex}
+                        onThumbnailChange={handleThumbnailChange}
                     />
                 </div>
 

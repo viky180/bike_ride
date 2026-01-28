@@ -6,6 +6,8 @@ import { ItemSelector } from './ItemSelector'
 import { SellerContactInfo } from './SellerContactInfo'
 import { Disclaimer } from './Disclaimer'
 import { ImageUpload } from '../ImageUpload'
+import { useSellLocationDefaults } from '../../hooks/useSellLocationDefaults'
+import { PrefilledLabel } from './PrefilledLabel'
 
 interface ElectronicsFormProps {
     onBack: () => void
@@ -29,6 +31,7 @@ export interface ElectronicsFormData {
     whatsappEnabled: boolean
     imageFiles: File[]
     imagePreviews: string[]
+    thumbnailIndex: number
 }
 
 export function ElectronicsForm({ onBack, onSubmit, loading }: ElectronicsFormProps) {
@@ -51,6 +54,16 @@ export function ElectronicsForm({ onBack, onSubmit, loading }: ElectronicsFormPr
     const [whatsappEnabled, setWhatsappEnabled] = useState(true)
     const [imageFiles, setImageFiles] = useState<File[]>([])
     const [imagePreviews, setImagePreviews] = useState<string[]>([])
+    const [thumbnailIndex, setThumbnailIndex] = useState(0)
+
+    const { source } = useSellLocationDefaults({
+        location,
+        setLocation,
+        pincode,
+        setPincode,
+        phone: sellerPhone,
+        setPhone: setSellerPhone
+    })
 
     const handleSelectItem = (item: ElectronicsItem) => {
         setElectronicsItem(item.id)
@@ -69,6 +82,10 @@ export function ElectronicsForm({ onBack, onSubmit, loading }: ElectronicsFormPr
         setImagePreviews(previews)
     }
 
+    const handleThumbnailChange = (index: number) => {
+        setThumbnailIndex(index)
+    }
+
     const handleSubmit = () => {
         onSubmit({
             name,
@@ -85,7 +102,8 @@ export function ElectronicsForm({ onBack, onSubmit, loading }: ElectronicsFormPr
             sellerPhone,
             whatsappEnabled,
             imageFiles,
-            imagePreviews
+            imagePreviews,
+            thumbnailIndex
         })
     }
 
@@ -261,6 +279,8 @@ export function ElectronicsForm({ onBack, onSubmit, loading }: ElectronicsFormPr
                         onImagesChange={handleImagesChange}
                         currentPreviews={imagePreviews}
                         maxImages={5}
+                        thumbnailIndex={thumbnailIndex}
+                        onThumbnailChange={handleThumbnailChange}
                     />
 
                     {/* Price */}
@@ -284,6 +304,7 @@ export function ElectronicsForm({ onBack, onSubmit, loading }: ElectronicsFormPr
                     </div>
 
                     {/* Seller Contact Info */}
+                    <PrefilledLabel source={source} />
                     <SellerContactInfo
                         location={location}
                         onLocationChange={setLocation}

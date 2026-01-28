@@ -6,6 +6,8 @@ import { ItemSelector } from './ItemSelector'
 import { SellerContactInfo } from './SellerContactInfo'
 import { Disclaimer } from './Disclaimer'
 import { ImageUpload } from '../ImageUpload'
+import { useSellLocationDefaults } from '../../hooks/useSellLocationDefaults'
+import { PrefilledLabel } from './PrefilledLabel'
 
 interface ClothesFormProps {
     onBack: () => void
@@ -29,6 +31,7 @@ export interface ClothesFormData {
     whatsappEnabled: boolean
     imageFiles: File[]
     imagePreviews: string[]
+    thumbnailIndex: number
 }
 
 export function ClothesForm({ onBack, onSubmit, loading }: ClothesFormProps) {
@@ -51,6 +54,16 @@ export function ClothesForm({ onBack, onSubmit, loading }: ClothesFormProps) {
     const [whatsappEnabled, setWhatsappEnabled] = useState(true)
     const [imageFiles, setImageFiles] = useState<File[]>([])
     const [imagePreviews, setImagePreviews] = useState<string[]>([])
+    const [thumbnailIndex, setThumbnailIndex] = useState(0)
+
+    const { source } = useSellLocationDefaults({
+        location,
+        setLocation,
+        pincode,
+        setPincode,
+        phone: sellerPhone,
+        setPhone: setSellerPhone
+    })
 
     const handleSelectItem = (item: ClothesItem) => {
         setClothesItem(item.id)
@@ -69,10 +82,14 @@ export function ClothesForm({ onBack, onSubmit, loading }: ClothesFormProps) {
         setImagePreviews(previews)
     }
 
+    const handleThumbnailChange = (index: number) => {
+        setThumbnailIndex(index)
+    }
+
     const handleSubmit = () => {
         onSubmit({
             name, selectedIcon, brand, gender, size, color, material, condition,
-            price, location, pincode, sellerPhone, whatsappEnabled, imageFiles, imagePreviews
+            price, location, pincode, sellerPhone, whatsappEnabled, imageFiles, imagePreviews, thumbnailIndex
         })
     }
 
@@ -195,7 +212,7 @@ export function ClothesForm({ onBack, onSubmit, loading }: ClothesFormProps) {
                         </div>
                     </div>
 
-                    <ImageUpload onImagesChange={handleImagesChange} currentPreviews={imagePreviews} maxImages={5} />
+                    <ImageUpload onImagesChange={handleImagesChange} currentPreviews={imagePreviews} maxImages={5} thumbnailIndex={thumbnailIndex} onThumbnailChange={handleThumbnailChange} />
 
                     {/* Price */}
                     <div className="form-group">
@@ -210,6 +227,7 @@ export function ClothesForm({ onBack, onSubmit, loading }: ClothesFormProps) {
                         />
                     </div>
 
+                    <PrefilledLabel source={source} />
                     <SellerContactInfo
                         location={location} onLocationChange={setLocation}
                         pincode={pincode} onPincodeChange={setPincode}

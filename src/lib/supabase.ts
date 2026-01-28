@@ -23,6 +23,7 @@ export interface User {
     is_driver: boolean
     is_admin: boolean
     seller_type: 'occasional' | 'shopkeeper'
+    firebase_uid?: string  // Firebase UID for Google users
     created_at: string
 }
 
@@ -64,6 +65,7 @@ export interface Product {
     location: string | null
     pincode: string | null
     image_urls: string[]
+    thumbnail_index?: number
     status: 'available' | 'sold' | 'expired'
     created_at: string
     // Pharmacy-specific fields
@@ -146,6 +148,7 @@ export interface Shop {
     user_id: string
     shop_name: string
     shop_slug: string
+    category: ProductCategory | null  // Default category for products
     description: string | null
     location: string | null
     pincode: string | null
@@ -184,7 +187,8 @@ export async function createShop(
     phone: string,
     description?: string,
     location?: string,
-    pincode?: string
+    pincode?: string,
+    category?: ProductCategory
 ): Promise<Shop | null> {
     try {
         const shopSlug = generateShopSlug(shopName, phone)
@@ -195,6 +199,7 @@ export async function createShop(
                 user_id: userId,
                 shop_name: shopName,
                 shop_slug: shopSlug,
+                category: category || null,
                 description: description || null,
                 location: location || null,
                 pincode: pincode || null
@@ -279,7 +284,7 @@ export async function getShopBySlug(slug: string): Promise<Shop | null> {
 export async function updateShop(
     shopId: string,
     userId: string,
-    updates: Partial<Pick<Shop, 'shop_name' | 'description' | 'location' | 'pincode' | 'is_active'>>
+    updates: Partial<Pick<Shop, 'shop_name' | 'category' | 'description' | 'location' | 'pincode' | 'is_active'>>
 ): Promise<boolean> {
     try {
         // Verify ownership
@@ -400,10 +405,15 @@ export async function uploadProductImage(userId: string, file: File): Promise<st
 }
 
 /**
- * Update a product's image URLs in the database
+ * Update a product's image URLs and thumbnail index in the database
  * SECURITY: Verifies ownership before updating
  */
-export async function updateProductImages(productId: string, imageUrls: string[], userId: string): Promise<boolean> {
+export async function updateProductImages(
+    productId: string,
+    imageUrls: string[],
+    userId: string,
+    thumbnailIndex?: number
+): Promise<boolean> {
     try {
         // Verify ownership first
         const { data: product } = await supabase
@@ -417,9 +427,18 @@ export async function updateProductImages(productId: string, imageUrls: string[]
             return false
         }
 
+        const updateData: { image_urls: string[]; thumbnail_index?: number } = {
+            image_urls: imageUrls
+        }
+
+        // Only update thumbnail_index if provided
+        if (thumbnailIndex !== undefined) {
+            updateData.thumbnail_index = thumbnailIndex
+        }
+
         const { error } = await supabase
             .from('products')
-            .update({ image_urls: imageUrls })
+            .update(updateData)
             .eq('id', productId)
 
         if (error) {

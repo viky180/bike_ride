@@ -5,6 +5,8 @@ import { ItemSelector } from './ItemSelector'
 import { Disclaimer } from './Disclaimer'
 import { ImageUpload } from '../ImageUpload'
 import { PincodeInput } from '../PincodeInput'
+import { useSellLocationDefaults } from '../../hooks/useSellLocationDefaults'
+import { PrefilledLabel } from './PrefilledLabel'
 
 interface LivestockFormProps {
     onBack: () => void
@@ -27,6 +29,7 @@ export interface LivestockFormData {
     whatsappEnabled: boolean
     imageFiles: File[]
     imagePreviews: string[]
+    thumbnailIndex: number
 }
 
 export function LivestockForm({ onBack, onSubmit, loading }: LivestockFormProps) {
@@ -47,6 +50,16 @@ export function LivestockForm({ onBack, onSubmit, loading }: LivestockFormProps)
     const [whatsappEnabled, setWhatsappEnabled] = useState(true)
     const [imageFiles, setImageFiles] = useState<File[]>([])
     const [imagePreviews, setImagePreviews] = useState<string[]>([])
+    const [thumbnailIndex, setThumbnailIndex] = useState(0)
+
+    const { source } = useSellLocationDefaults({
+        location,
+        setLocation,
+        pincode,
+        setPincode,
+        phone: sellerPhone,
+        setPhone: setSellerPhone
+    })
 
     const handleSelectItem = (item: LivestockItem) => {
         setLivestockItem(item.id)
@@ -65,10 +78,14 @@ export function LivestockForm({ onBack, onSubmit, loading }: LivestockFormProps)
         setImagePreviews(previews)
     }
 
+    const handleThumbnailChange = (index: number) => {
+        setThumbnailIndex(index)
+    }
+
     const handleSubmit = () => {
         onSubmit({
             name, selectedIcon, sellingUrgency, sellingType, lactationStage, milkYield, defects,
-            price, location, pincode, sellerPhone, whatsappEnabled, imageFiles, imagePreviews
+            price, location, pincode, sellerPhone, whatsappEnabled, imageFiles, imagePreviews, thumbnailIndex
         })
     }
 
@@ -148,7 +165,7 @@ export function LivestockForm({ onBack, onSubmit, loading }: LivestockFormProps)
                     <div className="form-group">
                         <label className="form-label" style={{ fontSize: 18, fontWeight: 600 }}>📸 वीडियो या फोटो डालें *</label>
                         <small style={{ display: 'block', marginBottom: 12, color: 'var(--color-text-light)' }}>अच्छी फोटो डालने पर जल्दी बिकती है</small>
-                        <ImageUpload onImagesChange={handleImagesChange} currentPreviews={imagePreviews} maxImages={5} />
+                        <ImageUpload onImagesChange={handleImagesChange} currentPreviews={imagePreviews} maxImages={5} thumbnailIndex={thumbnailIndex} onThumbnailChange={handleThumbnailChange} />
                     </div>
 
                     {/* Lactation Stage (dairy animals) */}
@@ -196,6 +213,8 @@ export function LivestockForm({ onBack, onSubmit, loading }: LivestockFormProps)
                         <input type="text" className="form-input" value={location} onChange={(e) => setLocation(e.target.value)} placeholder="जैसे: रामपुर गाँव, ब्लॉक..."
                             style={{ width: '100%', padding: '16px', fontSize: '18px', borderRadius: '12px', border: '2px solid var(--color-border)' }} />
                     </div>
+
+                    <PrefilledLabel source={source} />
 
                     <PincodeInput value={pincode} onChange={setPincode} required />
 

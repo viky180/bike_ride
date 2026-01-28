@@ -5,6 +5,8 @@ import { ImageUpload } from '../ImageUpload'
 import { PincodeInput } from '../PincodeInput'
 import { searchMedicines } from '../../lib/medicines'
 import { CATEGORIES } from '../../lib/categories'
+import { useSellLocationDefaults } from '../../hooks/useSellLocationDefaults'
+import { PrefilledLabel } from './PrefilledLabel'
 
 interface PharmacyFormProps {
     onBack: () => void
@@ -20,6 +22,7 @@ export interface PharmacyFormData {
     pincode: string
     imageFiles: File[]
     imagePreviews: string[]
+    thumbnailIndex: number
 }
 
 export function PharmacyForm({ onBack, onSubmit, loading }: PharmacyFormProps) {
@@ -34,6 +37,14 @@ export function PharmacyForm({ onBack, onSubmit, loading }: PharmacyFormProps) {
     const [pincode, setPincode] = useState('')
     const [imageFiles, setImageFiles] = useState<File[]>([])
     const [imagePreviews, setImagePreviews] = useState<string[]>([])
+    const [thumbnailIndex, setThumbnailIndex] = useState(0)
+
+    const { source } = useSellLocationDefaults({
+        location,
+        setLocation,
+        pincode,
+        setPincode
+    })
 
     // Pharmacy category details
     const pharmacyCat = CATEGORIES.find(c => c.id === 'pharmacy')
@@ -64,6 +75,10 @@ export function PharmacyForm({ onBack, onSubmit, loading }: PharmacyFormProps) {
         setImagePreviews(previews)
     }
 
+    const handleThumbnailChange = (index: number) => {
+        setThumbnailIndex(index)
+    }
+
     const handleSubmit = () => {
         onSubmit({
             shopName,
@@ -72,7 +87,8 @@ export function PharmacyForm({ onBack, onSubmit, loading }: PharmacyFormProps) {
             location,
             pincode,
             imageFiles,
-            imagePreviews
+            imagePreviews,
+            thumbnailIndex
         })
     }
 
@@ -211,6 +227,8 @@ export function PharmacyForm({ onBack, onSubmit, loading }: PharmacyFormProps) {
                 onImagesChange={handleImagesChange}
                 currentPreviews={imagePreviews}
                 maxImages={3}
+                thumbnailIndex={thumbnailIndex}
+                onThumbnailChange={handleThumbnailChange}
             />
 
             <div className="form-group">
@@ -232,6 +250,8 @@ export function PharmacyForm({ onBack, onSubmit, loading }: PharmacyFormProps) {
                     }}
                 />
             </div>
+
+            <PrefilledLabel source={source} />
 
             <PincodeInput value={pincode} onChange={setPincode} required />
 

@@ -12,8 +12,12 @@ CREATE TABLE IF NOT EXISTS users (
   phone TEXT UNIQUE NOT NULL,
   name TEXT NOT NULL,
   is_driver BOOLEAN DEFAULT false,
+  firebase_uid TEXT UNIQUE,  -- Firebase UID for Google users
   created_at TIMESTAMPTZ DEFAULT now()
 );
+
+-- Index for Firebase UID lookups (Google users)
+CREATE INDEX IF NOT EXISTS idx_users_firebase_uid ON users(firebase_uid);
 
 -- Rides posted by drivers
 CREATE TABLE IF NOT EXISTS rides (
@@ -285,3 +289,8 @@ CREATE INDEX IF NOT EXISTS idx_shops_active ON shops(is_active);
 -- RLS for shops
 ALTER TABLE shops ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Allow all for shops" ON shops FOR ALL USING (true) WITH CHECK (true);
+
+-- ================================================
+-- Migration: Add category to shops (run if table exists)
+-- ================================================
+-- ALTER TABLE shops ADD COLUMN IF NOT EXISTS category TEXT CHECK (category IN ('vegetables', 'fruits', 'grains', 'dairy', 'electronics', 'clothes', 'furniture', 'books', 'vehicles', 'livestock', 'pharmacy', 'jobs', 'other'));

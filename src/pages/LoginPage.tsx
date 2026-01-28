@@ -2,11 +2,11 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useApp } from '../context/AppContext'
-import { setupRecaptcha, sendOTP, verifyOTP, ConfirmationResult, RecaptchaVerifier, auth } from '../lib/firebase'
+import { setupRecaptcha, sendOTP, verifyOTP, ConfirmationResult, RecaptchaVerifier, auth, signInWithGoogle } from '../lib/firebase'
 import { supabase, isSupabaseConfigured } from '../lib/supabase'
 import { AppIcon } from '../components/AppIcon'
 
-type Step = 'phone' | 'otp' | 'name'
+type Step = 'phone' | 'otp' | 'name' | 'google_phone'
 
 export function LoginPage() {
     const navigate = useNavigate()
@@ -21,6 +21,9 @@ export function LoginPage() {
     const [error, setError] = useState('')
     const [resendTimer, setResendTimer] = useState(0)
     const [verifiedPhone, setVerifiedPhone] = useState('')
+    const [googleUserName, setGoogleUserName] = useState('')
+    const [googleFirebaseUid, setGoogleFirebaseUid] = useState('')
+    const [googleLoginFailed, setGoogleLoginFailed] = useState(false)
 
     const confirmationResultRef = useRef<ConfirmationResult | null>(null)
     const recaptchaVerifierRef = useRef<RecaptchaVerifier | null>(null)
@@ -156,6 +159,45 @@ export function LoginPage() {
         }
     }
 
+    const handleGoogleLogin = async () => {
+        setLoading(true)
+        setError('')
+        setGoogleLoginFailed(false)
+
+        try {
+            const fbUser = await signInWithGoogle()
+            if (!fbUser) {
+                throw new Error('Google sign-in failed')
+            }
+
+            if (isSupabaseConfigured) {
+                const { data: existingUser } = await supabase
+                    .from('users')
+                    .select('*')
+                    .eq('firebase_uid', fbUser.uid)
+                    .single()
+
+                if (existingUser) {
+                    setUser(existingUser)
+                    navigate('/')
+                    return
+                }
+            }
+
+            const displayName = fbUser.displayName || ''
+            const email = fbUser.email || ''
+            setGoogleUserName(displayName || email || 'User')
+            setGoogleFirebaseUid(fbUser.uid)
+            setStep('google_phone')
+        } catch (err: unknown) {
+            console.error('Google sign-in error:', err)
+            setGoogleLoginFailed(true)
+            setError('Google login failed. Please use SMS login instead.')
+        } finally {
+            setLoading(false)
+        }
+    }
+
     const handleVerifyOTP = async () => {
         if (!otp || otp.length !== 6) {
             setError('Please enter the 6-digit OTP')
@@ -257,6 +299,64 @@ export function LoginPage() {
         }
     }
 
+    const handleCreateGoogleProfile = async () => {
+        if (!phone || phone.length !== 10) {
+            setError('Please enter a valid 10-digit phone number')
+            return
+        }
+
+        if (!isSupabaseConfigured) {
+            navigate('/')
+            return
+        }
+
+        setLoading(true)
+        setError('')
+
+        try {
+            const { data: existingUser } = await supabase
+                .from('users')
+                .select('*')
+                .eq('phone', phone)
+                .single()
+
+            if (existingUser) {
+                // Link Firebase UID to existing user if not already set
+                if (!existingUser.firebase_uid && googleFirebaseUid) {
+                    await supabase
+                        .from('users')
+                        .update({ firebase_uid: googleFirebaseUid })
+                        .eq('id', existingUser.id)
+                    existingUser.firebase_uid = googleFirebaseUid
+                }
+                setUser(existingUser)
+                navigate('/')
+                return
+            }
+
+            const { data, error: dbError } = await supabase
+                .from('users')
+                .insert({
+                    phone,
+                    name: googleUserName || name || 'User',
+                    is_driver: false,
+                    firebase_uid: googleFirebaseUid || null
+                })
+                .select()
+                .single()
+
+            if (dbError) throw dbError
+
+            setUser(data)
+            navigate('/')
+        } catch (err) {
+            console.error('Error creating Google profile:', err)
+            setError('Failed to save contact number. Please try again.')
+        } finally {
+            setLoading(false)
+        }
+    }
+
     const handleResendOTP = () => {
         if (resendTimer > 0) return
         setOtp('')
@@ -293,8 +393,85 @@ export function LoginPage() {
             {/* Step 1: Phone Input */}
             {step === 'phone' && (
                 <form onSubmit={(e) => { e.preventDefault(); handleSendOTP(); }}>
+                    <button
+                        type="button"
+                        className="btn btn-primary"
+                        onClick={handleGoogleLogin}
+                        disabled={loading}
+                        style={{ width: '100%', marginBottom: 12 }}
+                    >
+                        {loading ? '⏳ Signing in...' : '🔐 Continue with Google'}
+                    </button>
+
+                    {googleLoginFailed && (
+                        <>
+                            <button
+                                type="button"
+                                className="btn btn-secondary"
+                                onClick={() => setError('')}
+                                style={{ width: '100%', marginBottom: 16 }}
+                            >
+                                📩 Use SMS login
+                            </button>
+
+                            <div className="form-group">
+                                <label className="form-label">📱 {t('enter_phone')}</label>
+                                <div style={{ display: 'flex', gap: 8 }}>
+                                    <div style={{
+                                        padding: '12px 16px',
+                                        background: 'var(--color-surface)',
+                                        border: '1px solid var(--color-border)',
+                                        borderRadius: 8,
+                                        fontWeight: 600
+                                    }}>
+                                        +91
+                                    </div>
+                                    <input
+                                        type="tel"
+                                        className="form-input"
+                                        value={phone}
+                                        onChange={e => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                                        placeholder="9876543210"
+                                        style={{ flex: 1 }}
+                                        autoFocus
+                                    />
+                                </div>
+                            </div>
+
+                            <button
+                                type="submit"
+                                className="btn btn-primary"
+                                disabled={loading || phone.length !== 10}
+                                style={{ width: '100%', marginTop: 16 }}
+                            >
+                                {loading ? '⏳ Sending...' : '📤 Send OTP'}
+                            </button>
+                        </>
+                    )}
+
+                    <button
+                        type="button"
+                        className="btn btn-secondary"
+                        onClick={() => navigate('/')}
+                        style={{ width: '100%', marginTop: googleLoginFailed ? 12 : 16 }}
+                    >
+                        ← Continue as Guest
+                    </button>
+                </form>
+            )}
+
+            {/* Step 1b: Google Phone Capture */}
+            {step === 'google_phone' && (
+                <form onSubmit={(e) => { e.preventDefault(); handleCreateGoogleProfile(); }}>
+                    <div style={{ textAlign: 'center', marginBottom: 16 }}>
+                        <p style={{ fontSize: 20, fontWeight: 600 }}>✅ Signed in</p>
+                        <p style={{ color: 'var(--color-text-light)' }}>
+                            Hi {googleUserName}! Please share your contact number.
+                        </p>
+                    </div>
+
                     <div className="form-group">
-                        <label className="form-label">📱 {t('enter_phone')}</label>
+                        <label className="form-label">📱 Contact Number</label>
                         <div style={{ display: 'flex', gap: 8 }}>
                             <div style={{
                                 padding: '12px 16px',
@@ -323,16 +500,7 @@ export function LoginPage() {
                         disabled={loading || phone.length !== 10}
                         style={{ width: '100%', marginTop: 16 }}
                     >
-                        {loading ? '⏳ Sending...' : '📤 Send OTP'}
-                    </button>
-
-                    <button
-                        type="button"
-                        className="btn btn-secondary"
-                        onClick={() => navigate('/')}
-                        style={{ width: '100%', marginTop: 12 }}
-                    >
-                        ← Continue as Guest
+                        {loading ? '⏳ Saving...' : '✓ Save Number'}
                     </button>
                 </form>
             )}

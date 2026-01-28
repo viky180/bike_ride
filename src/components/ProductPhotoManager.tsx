@@ -10,6 +10,10 @@ interface ProductPhotoManagerProps {
     onImagesChange: (imageUrls: string[], newFiles: File[], deletedUrls: string[]) => void
     /** Loading state */
     loading?: boolean
+    /** Current thumbnail index */
+    thumbnailIndex?: number
+    /** Callback when thumbnail selection changes */
+    onThumbnailChange?: (index: number) => void
 }
 
 // Compress image to reduce file size for low bandwidth
@@ -64,7 +68,9 @@ export function ProductPhotoManager({
     existingImages,
     maxImages = 5,
     onImagesChange,
-    loading = false
+    loading = false,
+    thumbnailIndex = 0,
+    onThumbnailChange
 }: ProductPhotoManagerProps) {
     const { language } = useApp()
     const fileInputRef = useRef<HTMLInputElement>(null)
@@ -77,6 +83,8 @@ export function ProductPhotoManager({
     const [newFiles, setNewFiles] = useState<File[]>([])
     const [newPreviews, setNewPreviews] = useState<string[]>([])
     const [processing, setProcessing] = useState(false)
+    // Track selected thumbnail
+    const [selectedThumbnail, setSelectedThumbnail] = useState(thumbnailIndex)
 
     const totalImages = currentExistingUrls.length + newFiles.length
 
@@ -129,6 +137,16 @@ export function ProductPhotoManager({
         setCurrentExistingUrls(updatedExisting)
         setDeletedUrls(updatedDeleted)
         onImagesChange(updatedExisting, newFiles, updatedDeleted)
+
+        // Adjust thumbnail index if needed
+        if (index === selectedThumbnail) {
+            setSelectedThumbnail(0)
+            onThumbnailChange?.(0)
+        } else if (index < selectedThumbnail) {
+            const newIdx = selectedThumbnail - 1
+            setSelectedThumbnail(newIdx)
+            onThumbnailChange?.(newIdx)
+        }
     }
 
     const handleRemoveNew = (index: number) => {
@@ -141,6 +159,22 @@ export function ProductPhotoManager({
         setNewFiles(updatedFiles)
         setNewPreviews(updatedPreviews)
         onImagesChange(currentExistingUrls, updatedFiles, deletedUrls)
+
+        // Adjust thumbnail index if needed (new images come after existing)
+        const actualIndex = currentExistingUrls.length + index
+        if (actualIndex === selectedThumbnail) {
+            setSelectedThumbnail(0)
+            onThumbnailChange?.(0)
+        } else if (actualIndex < selectedThumbnail) {
+            const newIdx = selectedThumbnail - 1
+            setSelectedThumbnail(newIdx)
+            onThumbnailChange?.(newIdx)
+        }
+    }
+
+    const handleThumbnailSelect = (index: number) => {
+        setSelectedThumbnail(index)
+        onThumbnailChange?.(index)
     }
 
     const triggerFileInput = () => {
@@ -173,7 +207,14 @@ export function ProductPhotoManager({
                 <div className="image-previews-grid">
                     {/* Existing images */}
                     {currentExistingUrls.map((url, index) => (
-                        <div key={`existing-${index}`} className="image-preview-item">
+                        <div
+                            key={`existing-${index}`}
+                            className="image-preview-item"
+                            style={{
+                                border: selectedThumbnail === index ? '3px solid #22c55e' : undefined,
+                                boxShadow: selectedThumbnail === index ? '0 0 8px rgba(34, 197, 94, 0.4)' : undefined
+                            }}
+                        >
                             <img src={url} alt={`Photo ${index + 1}`} />
                             <button
                                 type="button"
@@ -184,48 +225,102 @@ export function ProductPhotoManager({
                             >
                                 ✕
                             </button>
-                            <span style={{
-                                position: 'absolute',
-                                bottom: 4,
-                                left: 4,
-                                fontSize: 10,
-                                background: 'rgba(0,0,0,0.6)',
-                                color: 'white',
-                                padding: '2px 6px',
-                                borderRadius: 4
-                            }}>
-                                {language === 'hi' ? 'मौजूदा' : 'Existing'}
-                            </span>
+                            {/* Thumbnail badge */}
+                            {selectedThumbnail === index ? (
+                                <span style={{
+                                    position: 'absolute',
+                                    bottom: 4,
+                                    left: 4,
+                                    fontSize: 10,
+                                    background: '#22c55e',
+                                    color: 'white',
+                                    padding: '2px 6px',
+                                    borderRadius: 4
+                                }}>
+                                    ⭐ {language === 'hi' ? 'मुख्य' : 'Main'}
+                                </span>
+                            ) : totalImages > 1 ? (
+                                <button
+                                    type="button"
+                                    onClick={() => handleThumbnailSelect(index)}
+                                    style={{
+                                        position: 'absolute',
+                                        bottom: 4,
+                                        left: 4,
+                                        fontSize: 9,
+                                        background: 'rgba(0,0,0,0.6)',
+                                        color: 'white',
+                                        padding: '2px 6px',
+                                        borderRadius: 4,
+                                        border: 'none',
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    ⭐ {language === 'hi' ? 'मुख्य बनाएं' : 'Set Main'}
+                                </button>
+                            ) : null}
                         </div>
                     ))}
 
                     {/* Newly added images */}
-                    {newPreviews.map((preview, index) => (
-                        <div key={`new-${index}`} className="image-preview-item">
-                            <img src={preview} alt={`New photo ${index + 1}`} />
-                            <button
-                                type="button"
-                                className="image-preview-remove"
-                                onClick={() => handleRemoveNew(index)}
-                                disabled={loading}
-                                aria-label={language === 'hi' ? 'फोटो हटाएं' : 'Remove photo'}
+                    {newPreviews.map((preview, index) => {
+                        const actualIndex = currentExistingUrls.length + index
+                        return (
+                            <div
+                                key={`new-${index}`}
+                                className="image-preview-item"
+                                style={{
+                                    border: selectedThumbnail === actualIndex ? '3px solid #22c55e' : undefined,
+                                    boxShadow: selectedThumbnail === actualIndex ? '0 0 8px rgba(34, 197, 94, 0.4)' : undefined
+                                }}
                             >
-                                ✕
-                            </button>
-                            <span style={{
-                                position: 'absolute',
-                                bottom: 4,
-                                left: 4,
-                                fontSize: 10,
-                                background: '#22c55e',
-                                color: 'white',
-                                padding: '2px 6px',
-                                borderRadius: 4
-                            }}>
-                                {language === 'hi' ? 'नया' : 'New'}
-                            </span>
-                        </div>
-                    ))}
+                                <img src={preview} alt={`New photo ${index + 1}`} />
+                                <button
+                                    type="button"
+                                    className="image-preview-remove"
+                                    onClick={() => handleRemoveNew(index)}
+                                    disabled={loading}
+                                    aria-label={language === 'hi' ? 'फोटो हटाएं' : 'Remove photo'}
+                                >
+                                    ✕
+                                </button>
+                                {/* Thumbnail badge or set main button */}
+                                {selectedThumbnail === actualIndex ? (
+                                    <span style={{
+                                        position: 'absolute',
+                                        bottom: 4,
+                                        left: 4,
+                                        fontSize: 10,
+                                        background: '#22c55e',
+                                        color: 'white',
+                                        padding: '2px 6px',
+                                        borderRadius: 4
+                                    }}>
+                                        ⭐ {language === 'hi' ? 'मुख्य' : 'Main'}
+                                    </span>
+                                ) : totalImages > 1 ? (
+                                    <button
+                                        type="button"
+                                        onClick={() => handleThumbnailSelect(actualIndex)}
+                                        style={{
+                                            position: 'absolute',
+                                            bottom: 4,
+                                            left: 4,
+                                            fontSize: 9,
+                                            background: 'rgba(0,0,0,0.6)',
+                                            color: 'white',
+                                            padding: '2px 6px',
+                                            borderRadius: 4,
+                                            border: 'none',
+                                            cursor: 'pointer'
+                                        }}
+                                    >
+                                        ⭐ {language === 'hi' ? 'मुख्य बनाएं' : 'Set Main'}
+                                    </button>
+                                ) : null}
+                            </div>
+                        )
+                    })}
 
                     {/* Add more button (if space available) */}
                     {canAddMore && (

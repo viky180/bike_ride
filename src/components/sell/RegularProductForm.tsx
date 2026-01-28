@@ -6,6 +6,8 @@ import { CATEGORIES } from '../../lib/categories'
 import { CategoryBadge } from './CategoryBadge'
 import { ImageUpload } from '../ImageUpload'
 import { PincodeInput } from '../PincodeInput'
+import { useSellLocationDefaults } from '../../hooks/useSellLocationDefaults'
+import { PrefilledLabel } from './PrefilledLabel'
 
 interface RegularProductFormProps {
     category: ProductCategory
@@ -23,6 +25,7 @@ export interface RegularProductFormData {
     pincode: string
     imageFiles: File[]
     imagePreviews: string[]
+    thumbnailIndex: number
 }
 
 export function RegularProductForm({ category, onBack, onSubmit, loading }: RegularProductFormProps) {
@@ -37,6 +40,14 @@ export function RegularProductForm({ category, onBack, onSubmit, loading }: Regu
     const [pincode, setPincode] = useState('')
     const [imageFiles, setImageFiles] = useState<File[]>([])
     const [imagePreviews, setImagePreviews] = useState<string[]>([])
+    const [thumbnailIndex, setThumbnailIndex] = useState(0)
+
+    const { source } = useSellLocationDefaults({
+        location,
+        setLocation,
+        pincode,
+        setPincode
+    })
 
     const selectedCat = CATEGORIES.find(c => c.id === category)
     const popularProducts = getPopularProducts(category)
@@ -57,8 +68,12 @@ export function RegularProductForm({ category, onBack, onSubmit, loading }: Regu
         setImagePreviews(previews)
     }
 
+    const handleThumbnailChange = (index: number) => {
+        setThumbnailIndex(index)
+    }
+
     const handleSubmit = () => {
-        onSubmit({ name, selectedIcon, quantity, price, location, pincode, imageFiles, imagePreviews })
+        onSubmit({ name, selectedIcon, quantity, price, location, pincode, imageFiles, imagePreviews, thumbnailIndex })
     }
 
     const canSubmit = name.trim() && quantity.trim() && price
@@ -127,6 +142,8 @@ export function RegularProductForm({ category, onBack, onSubmit, loading }: Regu
                         onImagesChange={handleImagesChange}
                         currentPreviews={imagePreviews}
                         maxImages={3}
+                        thumbnailIndex={thumbnailIndex}
+                        onThumbnailChange={handleThumbnailChange}
                     />
 
                     <div className="form-group">
@@ -183,6 +200,8 @@ export function RegularProductForm({ category, onBack, onSubmit, loading }: Regu
                             }}
                         />
                     </div>
+
+                    <PrefilledLabel source={source} />
 
                     <PincodeInput value={pincode} onChange={setPincode} required />
 

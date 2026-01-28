@@ -5,7 +5,9 @@ import {
     signInWithPhoneNumber,
     ConfirmationResult,
     Auth,
-    User as FirebaseUser
+    User as FirebaseUser,
+    GoogleAuthProvider,
+    signInWithPopup
 } from 'firebase/auth'
 import { initializeAppCheck, ReCaptchaV3Provider } from 'firebase/app-check'
 
@@ -109,6 +111,26 @@ export async function verifyOTP(
         return result.user
     } catch (error) {
         console.error('Error verifying OTP:', error)
+        throw error
+    }
+}
+
+// Sign in with Google OAuth
+export async function signInWithGoogle(): Promise<FirebaseUser> {
+    if (!auth) {
+        throw new Error('Firebase auth not initialized')
+    }
+
+    const provider = new GoogleAuthProvider()
+    provider.setCustomParameters({
+        prompt: 'select_account'
+    })
+
+    try {
+        const result = await signInWithPopup(auth, provider)
+        return result.user
+    } catch (error) {
+        console.error('Error signing in with Google:', error)
         throw error
     }
 }

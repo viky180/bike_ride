@@ -1205,73 +1205,64 @@ body {
 }
 
 /* Product Gallery (Detail Page) */
-.product-gallery {
+.product-gallery-fullscreen {
   margin-bottom: var(--spacing-lg);
 }
 
-.product-gallery-main {
-  position: relative;
+.product-gallery-scroll {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
   width: 100%;
-  aspect-ratio: 4/3;
-  border-radius: var(--radius-lg);
-  overflow: hidden;
+  height: min(100dvh, 520px);
   background: var(--color-bg);
-  cursor: pointer;
 }
 
-.product-gallery-main img {
+.product-gallery-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.product-gallery-slide {
+  flex: 0 0 100%;
   width: 100%;
   height: 100%;
-  object-fit: cover;
-}
-
-.gallery-nav {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: rgba(0, 0, 0, 0.5);
-  color: white;
-  border: none;
-  font-size: 24px;
-  cursor: pointer;
+  scroll-snap-align: start;
   display: flex;
   align-items: center;
   justify-content: center;
+  background: #0f172a;
 }
 
-.gallery-nav.prev {
-  left: 8px;
+.product-gallery-slide img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
 }
 
-.gallery-nav.next {
-  right: 8px;
+.gallery-dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 10px;
 }
 
-.gallery-counter {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  background: rgba(0, 0, 0, 0.6);
-  color: white;
-  padding: 4px 12px;
-  border-radius: var(--radius-full);
-  font-size: var(--font-size-sm);
-  font-weight: 600;
+.gallery-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #cbd5f5;
+  opacity: 0.7;
+  transition: all 0.2s;
 }
 
-.gallery-zoom-hint {
-  position: absolute;
-  bottom: 8px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.6);
-  color: white;
-  padding: 4px 12px;
-  border-radius: var(--radius-full);
-  font-size: var(--font-size-sm);
+.gallery-dot.active {
+  width: 18px;
+  border-radius: 999px;
+  background: #3b82f6;
+  opacity: 1;
 }
 
 /* Gallery thumbnails */
@@ -1323,77 +1314,6 @@ body {
   font-size: 48px;
 }
 
-/* Fullscreen image modal */
-.fullscreen-modal {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.95);
-  z-index: 1000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.fullscreen-modal img {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-}
-
-.fullscreen-close {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
-  border: none;
-  font-size: 24px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 10;
-}
-
-.fullscreen-nav {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
-  border: none;
-  font-size: 28px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.fullscreen-nav.prev {
-  left: 16px;
-}
-
-.fullscreen-nav.next {
-  right: 16px;
-}
-
-.fullscreen-counter {
-  position: absolute;
-  bottom: 24px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
-  padding: 8px 16px;
-  border-radius: var(--radius-full);
-  font-weight: 600;
-}
 
 .product-details {
   display: flex;
@@ -1460,6 +1380,24 @@ body {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 10px;
+}
+
+/* Product card modern image styles */
+.product-card-modern .product-image-section {
+  position: relative;
+  aspect-ratio: 4/5 !important;
+  background: #f8fafc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.product-card-modern .product-image-section img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover !important;
+  object-position: top !important;
 }
 
 /* Floating action button */
